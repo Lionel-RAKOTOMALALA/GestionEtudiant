@@ -111,7 +111,7 @@ function Sidebar() {
                         <NavLink className="collapse-item" to="/admin/tickets/tous">
                             Tous
                         </NavLink>
-                        <NavLink className="collapse-item" to="/admin/uniteEnseign">
+                        <NavLink className="collapse-item" to="/admin/uniteEnseigns">
                             Unité d'enseignement
                         </NavLink>
                     </div>

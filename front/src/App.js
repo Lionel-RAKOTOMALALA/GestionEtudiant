@@ -20,6 +20,9 @@ import EditEtudiant from './components/admin/Etudiant/EditEtudtiant';
 import ProfesseurApp from './components/admin/Professeur/ProfesseurApp';
 import ProfesseurForm from './components/admin/Professeur/ProfesseurForm';
 import EditProfesseur from './components/admin/Professeur/EditProfesseur';
+import UniteEnseignApp from './components/admin/UniteEnseign/UniteEnseignApp';
+import UniteEnseignForm from './components/admin/UniteEnseign/UniteEnseignForm';
+import EditUniteEnseign from './components/admin/UniteEnseign/EditUniteEnseign';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.headers.post['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
@@ -47,6 +50,9 @@ function App() {
           <Route path='/admin/professeurs' element={<ProfesseurApp/>}/>
           <Route path='/admin/professeurs/ajout' element={<ProfesseurForm/>}/>
           <Route path='/admin/professeur/edit/:id' element={<EditProfesseur/>}/>
+          <Route path='/admin/uniteEnseigns' element={<UniteEnseignApp/>}/>
+          <Route path='/admin/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
+          <Route path='/admin/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
         </Route>
       </Routes>
     </Router>

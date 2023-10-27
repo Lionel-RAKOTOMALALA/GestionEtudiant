@@ -4,28 +4,28 @@ import axios from "axios";
 import swal from "sweetalert";
 import { NavLink } from "react-router-dom";
 
-const ProfesseurForm = () => {
-  const [usersList, setUsersList] = useState([]);
-  const [professeurInput, setprofesseurInput] = useState({
-    matiere_enseign: "",
-    id: "",
+const UniteEnseignForm = () => {
+  const [filieresList, setFilieresList] = useState([]); 
+  const [UniteEnseignInput, setUniteEnseignInput] = useState({
+    nom_unite: "",
+    id_filiere: "",
     error_list: {},
   });
   const [formError, setFormError] = useState("");
 
   const handleInput = (e) => {
     e.persist();
-    setprofesseurInput({
-      ...professeurInput,
+    setUniteEnseignInput({
+      ...UniteEnseignInput,
       [e.target.name]: e.target.value,
     });
     setFormError("");
   };
 
   const resetForm = () => {
-    setprofesseurInput({
-      matiere_enseign: "",
-      id: "",
+    setUniteEnseignInput({
+      nom_unite: "",
+      id_filiere: "",
       error_list: {},
     });
     setFormError("");
@@ -35,19 +35,19 @@ const ProfesseurForm = () => {
     e.preventDefault();
 
     // Réinitialisez les messages d'erreur
-    setprofesseurInput({
-      ...professeurInput,
+    setUniteEnseignInput({
+      ...UniteEnseignInput,
       error_list: {},
     });
     setFormError("");
 
     // Validation côté client
     const errors = {};
-    if (professeurInput.matiere_enseign === "") {
-      errors.matiere_enseign = "Le matiere_enseign est requis";
+    if (UniteEnseignInput.nom_unite === "") {
+      errors.nom_unite = "Le nom_unite est requis";
     }
-    if (professeurInput.id === "") {
-      errors.id = "L'utilisateur est requis";
+    if (UniteEnseignInput.id_filiere === "") {
+      errors.id_filiere = "La filière est requise";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -63,8 +63,8 @@ const ProfesseurForm = () => {
         errorString = `Le champ '${errorField}' est requis`;
       }
 
-      setprofesseurInput({
-        ...professeurInput,
+      setUniteEnseignInput({
+        ...UniteEnseignInput,
         error_list: errors,
       });
       setFormError(errorString);
@@ -72,12 +72,12 @@ const ProfesseurForm = () => {
       swal("Erreurs", errorString, "error");
     } else {
       const data = {
-        matiere_enseign: professeurInput.matiere_enseign,
-        user_id: professeurInput.id,
+        nom_unite: UniteEnseignInput.nom_unite,
+        id_filiere: UniteEnseignInput.id_filiere,
       };
 
       axios
-        .post("http://127.0.0.1:8000/api/professeurs", data)
+        .post("http://127.0.0.1:8000/api/uniteEnseigns", data)
         .then((res) => {
           if (res.data.status === 200) {
             swal("Success", res.data.message, "success");
@@ -85,8 +85,8 @@ const ProfesseurForm = () => {
             // Réinitialisez les champs du formulaire
             resetForm();
           } else if (res.data.status === 400) {
-            setprofesseurInput({
-              ...professeurInput,
+            setUniteEnseignInput({
+              ...UniteEnseignInput,
               error_list: res.data.error_list,
             });
           }
@@ -95,14 +95,14 @@ const ProfesseurForm = () => {
   };
 
   useEffect(() => {
-    // Récupérer la liste des utilisateurs depuis l'API
-    axios.get("http://127.0.0.1:8000/api/users").then((res) => {
+    
+
+    // Récupérer la liste des filières depuis l'API
+    axios.get("http://127.0.0.1:8000/api/filieres").then((res) => {
       if (res.data.status === 200) {
-        setUsersList(res.data.users);
+        setFilieresList(res.data.filieres);  // mise à jour de filieresList
       }
     });
-
-   
   }, []);
 
   return (
@@ -112,9 +112,9 @@ const ProfesseurForm = () => {
           <div className="col-md-8">
             <div className="card">
               <div className="card-header">
-                <h4>Spécialisation d'un professeur</h4>
+                <h4>Ajouter un étudiant</h4>
                 <NavLink
-                  to="/admin/etudiants"
+                  to="/admin/uniteEnseigns"
                   className="btn btn-primary btn-sm float-end"
                 >
                   <UilArrowCircleLeft /> Retour à l'affichage
@@ -134,46 +134,46 @@ const ProfesseurForm = () => {
                     )}
 
                     <div className="form-group mb-3">
-                      <label htmlFor="matiere_enseign">matiere_enseign</label>
+                      <label htmlFor="nom_unite">nom_unite</label>
                       <input
                         type="text"
-                        name="matiere_enseign"
+                        name="nom_unite"
                         className={`form-control ${
-                          professeurInput.error_list.matiere_enseign ? "is-invalid" : ""
+                          UniteEnseignInput.error_list.nom_unite ? "is-invalid" : ""
                         }`}
                         onChange={handleInput}
-                        value={professeurInput.matiere_enseign}
+                        value={UniteEnseignInput.nom_unite}
                       />
-                      {professeurInput.error_list.matiere_enseign && (
+                      {UniteEnseignInput.error_list.nom_unite && (
                         <div className="text-danger">
-                          {professeurInput.error_list.matiere_enseign}
+                          {UniteEnseignInput.error_list.nom_unite}
                         </div>
                       )}
                     </div>
-                    
                     <div className="form-group mb-3">
-                      <label htmlFor="id">Utilisateur</label>
+                      <label htmlFor="id_filiere">Filière</label>
                       <select
-                        name="id"
+                        name="id_filiere"
                         onChange={handleInput}
-                        value={professeurInput.id}
+                        value={UniteEnseignInput.id_filiere}
                         className={`form-control ${
-                          professeurInput.error_list.id ? "is-invalid" : ""
+                          UniteEnseignInput.error_list.id_filiere ? "is-invalid" : ""
                         }`}
                       >
-                        <option value="">Sélectionner un utilisateur</option>
-                        {usersList.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name}
+                        <option value="">Sélectionner la filière</option>
+                        {filieresList.map((filiere) => (
+                          <option key={filiere.id_filiere} value={filiere.id_filiere}>
+                            {filiere.nom_filiere}
                           </option>
                         ))}
                       </select>
-                      {professeurInput.error_list.id && (
+                      {UniteEnseignInput.error_list.id_filiere && (
                         <div className="text-danger">
-                          {professeurInput.error_list.id}
+                          {UniteEnseignInput.error_list.id_filiere}
                         </div>
                         )}
                     </div>
+                    
                     <div className="row">
                       <div className="col">
                         <button
@@ -183,7 +183,7 @@ const ProfesseurForm = () => {
                           <UilCheckCircle size="20" /> Confirmer
                         </button>
                       </div>
-                      <NavLink to="/admin/professeurs" className="col">
+                      <NavLink to="/admin/uniteEnseigns" className="col">
                         <button
                           type="button"
                           className="btn btn-secondary btn-block mb-2"
@@ -203,4 +203,4 @@ const ProfesseurForm = () => {
   );
 };
 
-export default ProfesseurForm;
+export default UniteEnseignForm;

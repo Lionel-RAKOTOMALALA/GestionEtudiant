@@ -64,7 +64,7 @@ class UniteEnseignController extends Controller
     {
         $unite = UniteEnseign::join('filieres', 'unite_enseign.id_filiere', '=', 'filieres.id_filiere')
             ->where('unite_enseign.id_unite', $id)
-            ->select('unite_enseign.*', 'filieres.nom_filiere')
+            ->select('unite_enseign.*', 'filieres.*')
             ->first();
     
         if (!$unite) {

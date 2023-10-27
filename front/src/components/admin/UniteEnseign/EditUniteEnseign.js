@@ -5,41 +5,41 @@ import swal from 'sweetalert';
 import axios from 'axios';
 import Loader from '../../admin/materiels/loader';
 
-const EditProfesseur = () => {
+const EditUniteEnseign = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [userList, setUserList] = useState([]);
-  const [professeurInput, setprofesseurInput] = useState({
-    matiere_enseign: '',
-    id: '', // Vous devrez mettre la bonne valeur ici
+  const [filiereList, setFiliereList] = useState([]);
+  const [UniteEnseignInput, setUniteEnseignInput] = useState({
+    nom_unite: '',
+    id_filiere: '',
     error_list: {},
   });
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Récupérer la liste des utilisateurs
-    axios.get(`http://127.0.0.1:8000/api/users`).then((res) => {
+    
+
+    // Récupérer la liste des filières
+    axios.get(`http://127.0.0.1:8000/api/filieres`).then((res) => {
       if (res.data.status === 200) {
-        setUserList(res.data.users);
+        setFiliereList(res.data.filieres);
       }
     });
 
-   
-
     // Récupérer les données de l'étudiant
-    axios.get(`http://127.0.0.1:8000/api/professeurs/${id}`).then((res) => {
+    axios.get(`http://127.0.0.1:8000/api/uniteEnseigns/${id}`).then((res) => {
       if (res.data.status === 200) {
-        setprofesseurInput({
-          matiere_enseign: res.data.professeur.matiere_enseign,
-          id: res.data.professeur.id, 
+        setUniteEnseignInput({
+          nom_unite: res.data.unite.nom_unite,
+          id_filiere: res.data.unite.id_filiere,
           error_list: {},
         });
         setIsLoading(false);
       } else if (res.data.status === 404) {
         setIsLoading(false);
         swal('Erreur', res.data.message, 'error');
-        navigate('/admin/professeurs');
+        navigate('/admin/uniteEnseigns');
       }
     });
   }, [id, navigate]);
@@ -48,19 +48,19 @@ const EditProfesseur = () => {
     e.preventDefault();
 
     // Réinitialisez les messages d'erreur
-    setprofesseurInput({
-      ...professeurInput,
+    setUniteEnseignInput({
+      ...UniteEnseignInput,
       error_list: {},
     });
     setFormError('');
 
     // Validation côté client
     const errors = {};
-    if (professeurInput.matiere_enseign === '') {
-      errors.matiere_enseign = 'Le matiere_enseign est requis';
+    if (UniteEnseignInput.nom_unite === '') {
+      errors.nom_unite = 'Le nom_unite est requis';
     }
-    if (professeurInput.id === '') {
-      errors.id = 'L\'utilisateur est requis';
+    if (UniteEnseignInput.id_filiere === '') {
+      errors.id_filiere = 'La filière est requise';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -74,8 +74,8 @@ const EditProfesseur = () => {
         errorString = `Le champ '${errorField}' est requis`;
       }
 
-      setprofesseurInput({
-        ...professeurInput,
+      setUniteEnseignInput({
+        ...UniteEnseignInput,
         error_list: errors,
       });
       setFormError(errorString);
@@ -83,17 +83,17 @@ const EditProfesseur = () => {
     } else {
       // Pas d'erreurs, procéder à la requête Axios
       const data = {
-        matiere_enseign: professeurInput.matiere_enseign,
-        user_id: professeurInput.id,
+        nom_unite: UniteEnseignInput.nom_unite,
+        id_filiere: UniteEnseignInput.id_filiere,
       };
-      axios.put(`http://127.0.0.1:8000/api/professeurs/${id}`, data)
+      axios.put(`http://127.0.0.1:8000/api/uniteEnseigns/${id}`, data)
         .then((res) => {
           if (res.data.status === 200) {
             swal('Succès', res.data.message, 'success');
-            navigate('/admin/professeurs');
+            navigate('/admin/uniteEnseigns');
           } else if (res.data.status === 400) {
-            setprofesseurInput({
-              ...professeurInput,
+            setUniteEnseignInput({
+              ...UniteEnseignInput,
               error_list: res.data.error_list,
             });
           }
@@ -106,9 +106,9 @@ const EditProfesseur = () => {
 
   const handleInput = (e) => {
     e.persist();
-    setprofesseurInput({ ...professeurInput, [e.target.name]: e.target.value });
+    setUniteEnseignInput({ ...UniteEnseignInput, [e.target.name]: e.target.value });
   };
-  console.log(professeurInput.id);
+  console.log(UniteEnseignInput.id);
   return (
     <div>
       <div className="container py-5">
@@ -116,8 +116,8 @@ const EditProfesseur = () => {
           <div className="col-md-6">
             <div className="card">
               <div className="card-header">
-                <h4>Modification du professeur</h4>
-                <NavLink to="/admin/professeurs" className="btn btn-primary btn-sm float-end">
+                <h4>Modification de l'unité d'enseignement</h4>
+                <NavLink to="/admin/uniteEnseigns" className="btn btn-primary btn-sm float-end">
                   <UilArrowCircleLeft /> Retour à l'affichage
                 </NavLink>
               </div>
@@ -133,43 +133,43 @@ const EditProfesseur = () => {
                         </div>
                       )}
                       <div className="form-group mb-3">
-                        <label htmlFor="matiere_enseign">matiere_enseign</label>
+                        <label htmlFor="nom_unite">nom_unite</label>
                         <input
                           type="text"
-                          name="matiere_enseign"
-                          className={`form-control ${professeurInput.error_list.matiere_enseign ? 'is-invalid' : ''}`}
+                          name="nom_unite"
+                          className={`form-control ${UniteEnseignInput.error_list.nom_unite ? 'is-invalid' : ''}`}
                           onChange={handleInput}
-                          value={professeurInput.matiere_enseign}
+                          value={UniteEnseignInput.nom_unite}
                         />
-                        {professeurInput.error_list.matiere_enseign && (
+                        {UniteEnseignInput.error_list.nom_unite && (
                           <div className="text-danger">
-                            {professeurInput.error_list.matiere_enseign}
+                            {UniteEnseignInput.error_list.nom_unite}
                           </div>
                         )}
                       </div>
-                     
                       
                       <div className="form-group mb-3">
-                        <label htmlFor="id">Utilisateur</label>
+                        <label htmlFor="id_filiere">Filière</label>
                         <select
-                          name="id"
+                          name="id_filiere"
                           onChange={handleInput}
-                          value={professeurInput.id}
-                          className={`form-control ${professeurInput.error_list.id ? 'is-invalid' : ''}`}
+                          value={UniteEnseignInput.id_filiere}
+                          className={`form-control ${UniteEnseignInput.error_list.id_filiere ? 'is-invalid' : ''}`}
                         >
-                          <option value="">Sélectionner l'utilisateur</option>
-                          {userList.map((user) => (
-                            <option key={user.id} value={user.id} selected={user.id === professeurInput.id}>
-                              {user.name}
+                          <option value="">Sélectionner la filière</option>
+                          {filiereList.map((filiere) => (
+                            <option key={filiere.id_filiere} value={filiere.id_filiere} selected={filiere.nom_filiere === UniteEnseignInput.id_filiere}>
+                              {filiere.nom_filiere}
                             </option>
                           ))}
                         </select>
-                        {professeurInput.error_list.id && (
+                        {UniteEnseignInput.error_list.id_filiere && (
                           <div className="text-danger">
-                            {professeurInput.error_list.id}
+                            {UniteEnseignInput.error_list.id_filiere}
                           </div>
                         )}
                       </div>
+                      
                       <div className="row">
                         <div className="col">
                           <button
@@ -179,7 +179,7 @@ const EditProfesseur = () => {
                             <UilCheckCircle size="20" /> Confirmer
                           </button>
                         </div>
-                        <NavLink to="/admin/professeurs" className="col">
+                        <NavLink to="/admin/uniteEnseigns" className="col">
                           <button
                             type="button"
                             className="btn btn-secondary btn-block mb-2"
@@ -200,4 +200,4 @@ const EditProfesseur = () => {
   );
 };
 
-export default EditProfesseur;
+export default EditUniteEnseign;
