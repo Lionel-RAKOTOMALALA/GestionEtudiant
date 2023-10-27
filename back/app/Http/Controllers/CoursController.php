@@ -31,9 +31,9 @@ class CoursController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'libelle' => 'required|string',
-            'image_cours' => 'nullable|binary',
-            'fichier_cours' => 'nullable|binary',
-            'video_cours' => 'nullable|binary',
+            'image_cours' => 'nullable',
+            'fichier_cours' => 'nullable',
+            'video_cours' => 'nullable',
             'id_prof' => 'required|integer',
             'id_unite' => 'required|integer',
         ]);
@@ -74,7 +74,7 @@ class CoursController extends Controller
     $cours = Cours::join('unite_enseign', 'cours.id_unite', '=', 'unite_enseign.id_unite')
         ->join('users', 'cours.id_prof', '=', 'users.id') // Jointure avec la table "users"
         ->where('cours.code_matiere', $id)
-        ->select('cours.*', 'unite_enseign.nom_unite', 'users.name as nom_professeur') // Sélection du nom d'utilisateur
+        ->select('cours.*', 'unite_enseign.*', 'users.*') // Sélection du nom d'utilisateur
         ->first();
 
     if (!$cours) {
@@ -105,9 +105,9 @@ class CoursController extends Controller
             } else {
                 $validator = Validator::make($request->all(), [
                     'libelle' => 'required|string',
-                    'image_cours' => 'nullable|binary',
-                    'fichier_cours' => 'nullable|binary',
-                    'video_cours' => 'nullable|binary',
+                    'image_cours' => 'nullable',
+                    'fichier_cours' => 'nullable',
+                    'video_cours' => 'nullable',
                     'id_prof' => 'required|integer',
                     'id_unite' => 'required|integer',
                 ]);

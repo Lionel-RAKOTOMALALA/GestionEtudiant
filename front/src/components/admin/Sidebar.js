@@ -108,7 +108,7 @@ function Sidebar() {
                     <div className="bg-white py-2 collapse-inner rounded">
                         <h6 className="collapse-header">Listes des tickets </h6>
                         
-                        <NavLink className="collapse-item" to="/admin/tickets/tous">
+                        <NavLink className="collapse-item" to="/admin/cours">
                             Tous
                         </NavLink>
                         <NavLink className="collapse-item" to="/admin/uniteEnseigns">

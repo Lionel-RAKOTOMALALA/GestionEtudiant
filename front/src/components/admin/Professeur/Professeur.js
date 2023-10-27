@@ -42,7 +42,7 @@ const Professeur = ({ professeur, refreshData }) => {
     <tr>
       <td>{professeur.id_prof}</td>
       <td>{professeur.matiere_enseign}</td>
-      <td>{professeur.nom_professeur}</td>
+      <td>{professeur.name}</td>
       <td>
         <div style={{ marginRight: '1.2rem', display: 'inline-block' }}>
           <NavLink to={`/admin/professeur/edit/${professeur.id_prof}`}>

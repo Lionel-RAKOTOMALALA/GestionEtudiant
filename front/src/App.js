@@ -23,6 +23,9 @@ import EditProfesseur from './components/admin/Professeur/EditProfesseur';
 import UniteEnseignApp from './components/admin/UniteEnseign/UniteEnseignApp';
 import UniteEnseignForm from './components/admin/UniteEnseign/UniteEnseignForm';
 import EditUniteEnseign from './components/admin/UniteEnseign/EditUniteEnseign';
+import CoursApp from './components/admin/Cours/CoursApp';
+import CoursForm from './components/admin/Cours/CoursForm';
+import EditCours from './components/admin/Cours/EditCours';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.headers.post['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
@@ -53,6 +56,9 @@ function App() {
           <Route path='/admin/uniteEnseigns' element={<UniteEnseignApp/>}/>
           <Route path='/admin/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
           <Route path='/admin/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
+          <Route path='/admin/cours' element={<CoursApp/>}/>
+          <Route path='/admin/cours/ajout' element={<CoursForm/>}/>
+          <Route path='/admin/cours/edit/:id' element={<EditCours/>}/>
         </Route>
       </Routes>
     </Router>

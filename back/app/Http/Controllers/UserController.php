@@ -4,12 +4,46 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     /**
      * Affiche la liste des utilisateurs.
      */
+    public function comboUserEtudiant() {
+        $users = DB::table('users')
+    ->leftJoin('etudiants', 'users.id', '=', 'etudiants.id_user')
+    ->leftJoin('professeurs', 'users.id', '=', 'professeurs.user_id')
+    ->whereNull('etudiants.id_user')
+    ->whereNull('professeurs.user_id')
+    ->select('users.*')
+    ->get();
+
+        
+
+    
+        return response()->json([
+            'users' => $users,
+            'status' => 200
+        ], 200);
+    }
+    
+    public function comboUserProfesseurs() {
+        $users = DB::table('users')
+    ->whereNotIn('id', function ($query) {
+        $query->select('id_user')
+            ->from('etudiants');
+    })
+    ->get();
+
+    
+        return response()->json([
+            'users' => $users,
+            'status' => 200
+        ], 200);
+    }
+    
     public function index()
     {
         $users = User::all();

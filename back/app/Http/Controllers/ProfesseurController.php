@@ -15,7 +15,7 @@ class ProfesseurController extends Controller
     public function index()
     {
         $professeurs = Professeur::join('users', 'professeurs.user_id', '=', 'users.id')
-            ->select('professeurs.id_prof', 'professeurs.matiere_enseign', 'users.name as nom_professeur')
+            ->select('professeurs.id_prof', 'professeurs.matiere_enseign', 'users.*')
             ->get();
 
         return response()->json([
@@ -61,6 +61,7 @@ class ProfesseurController extends Controller
     /**
      * Affiche les détails d'un professeur spécifique.
      */
+   
     public function show(int $id)
     {
         $professeur = Professeur::join('users', 'professeurs.user_id', '=', 'users.id')

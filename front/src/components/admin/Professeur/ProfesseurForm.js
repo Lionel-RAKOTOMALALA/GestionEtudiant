@@ -96,7 +96,7 @@ const ProfesseurForm = () => {
 
   useEffect(() => {
     // Récupérer la liste des utilisateurs depuis l'API
-    axios.get("http://127.0.0.1:8000/api/users").then((res) => {
+    axios.get("http://127.0.0.1:8000/api/nom_prof").then((res) => {
       if (res.data.status === 200) {
         setUsersList(res.data.users);
       }

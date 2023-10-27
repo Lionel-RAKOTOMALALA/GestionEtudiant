@@ -38,3 +38,5 @@ Route::resource('cours', CoursController::class);
 
 // Routes pour les professeurs (professeurs)
 Route::resource('professeurs', ProfesseurController::class);
+Route::get('nom_etudiant', [UserController::class, 'comboUserEtudiant']);
+Route::get('nom_prof', [UserController::class, 'comboUserProfesseurs']);
