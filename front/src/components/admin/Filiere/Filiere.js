@@ -28,7 +28,7 @@ const Filiere = ({ filiere, refreshData }) => {
               refreshData(); 
             } else if (res.data.status === 404) {
               Swal.fire("Erreur", res.data.message, "error");
-              navigate('/admin/filieres');
+              navigate('/user/filieres');
             }
           })
           .catch((error) => {
@@ -44,7 +44,7 @@ const Filiere = ({ filiere, refreshData }) => {
       <td>{filiere.nom_filiere}</td>
       <td>
         <div style={{ marginRight: '1.2rem', display: 'inline-block' }}>
-          <NavLink to={`/admin/filieres/edit/${filiere.id_filiere}`}>
+          <NavLink to={`/user/filieres/edit/${filiere.id_filiere}`}>
             <button className="btn btn-primary btn-sm mr-2">
               <UilEditAlt /> Modifier
             </button>

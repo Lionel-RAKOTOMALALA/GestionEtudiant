@@ -1,309 +1,209 @@
 import React, { useEffect, useState } from "react";
-import { UilCheckCircle, UilTimes, UilArrowCircleLeft } from "@iconscout/react-unicons";
-import axios from "axios";
-import swal from "sweetalert";
+import { Button, Card, Input, Form, Select, message, Typography, Space, Upload } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
+
+const { Option } = Select;
 
 const CoursForm = () => {
   const [UniteList, setUniteList] = useState([]);
-  const [ProfesseurList, setProfesseurList] = useState([]);  // Ajout de la liste des filières
+  const [form] = Form.useForm();
+  const [imageFile, setImageFile] = useState(null);
+  const [fileFile, setFileFile] = useState(null);
+  const [videoFiles, setVideoFiles] = useState([]);
   const [CoursInput, setCoursInput] = useState({
     libelle: "",
-    image_cours: "",
-    fichier_cours : "",
-    video_cours: "",
-    id_prof: "",
     id_unite: "",
+    niveau_cours: "",
     error_list: {},
   });
-  const [formError, setFormError] = useState("");
 
-  const handleInput = (e) => {
-    e.persist();
-    setCoursInput({
-      ...CoursInput,
-      [e.target.name]: e.target.value,
-    });
-    setFormError("");
+  const handleFileChange = (name, file, setFileFunction) => {
+    if (file.status === "done" || file.status === "error") {
+      setFileFunction(file.originFileObj);
+    }
+  };
+
+  const handleVideoChange = (info) => {
+    const newVideoFiles = Array.from(info.fileList.map(file => file.originFileObj));
+    setVideoFiles(newVideoFiles);
   };
 
   const resetForm = () => {
-    setCoursInput({
-      libelle: "",
-      image_cours: "",
-      fichier_cours : "",
-      video_cours: "",
-      id_prof: "",
-      id_unite: "",
-      error_list: {},
-    });
-    setFormError("");
+    form.resetFields();
+    setImageFile(null);
+    setFileFile(null);
+    setVideoFiles([]);
   };
 
-  const submitCours = (e) => {
-    e.preventDefault();
+  const submitCours = async () => {
+    try {
+      await form.validateFields();
 
-    // Réinitialisez les messages d'erreur
-    setCoursInput({
-      ...CoursInput,
-      error_list: {},
-    });
-    setFormError("");
+      const formData = new FormData();
+      formData.append("libelle", CoursInput.libelle);
+      formData.append("niveau_cours", CoursInput.niveau_cours);
+      formData.append("image_cours", imageFile);
+      formData.append("fichier_cours", fileFile);
 
-    // Validation côté client
-    const errors = {};
-    if (CoursInput.libelle === "") {
-      errors.libelle = "Le libelle est requis";
-    }
-    if (CoursInput.image_cours === "") {
-      errors.image_cours = "Le image_cours est requis";
-    }
-    if (CoursInput.fichier_cours === "") {
-      errors.image_cours = "Le fichier_cours est requis";
-    }
-    if (CoursInput.video_cours === "") {
-      errors.image_cours = "Le video_cours est requis";
-    }
-    if (CoursInput.id_prof === "") {
-      errors.id_prof = "La filière est requise";
-    }
-    if (CoursInput.id === "") {
-      errors.id = "L'utilisateur est requis";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      // Il y a des erreurs, affichez-les avec Swal et dans le formulaire
-      let errorString;
-      if (Object.keys(errors).length > 1) {
-        const errorFields = Object.keys(errors)
-          .map((key) => key)
-          .join(" et ");
-        errorString = `Les champs "${errorFields}" sont requis`;
-      } else {
-        const errorField = Object.keys(errors)[0];
-        errorString = `Le champ '${errorField}' est requis`;
-      }
-
-      setCoursInput({
-        ...CoursInput,
-        error_list: errors,
+      // Append multiple video files
+      videoFiles.forEach((videoFile, index) => {
+        formData.append(`video_cours[]`, videoFile);
       });
-      setFormError(errorString);
 
-      swal("Erreurs", errorString, "error");
-    } else {
-      const data = {
-        libelle: CoursInput.libelle,
-        image_cours: CoursInput.image_cours,
-        fichier_cours : CoursInput.fichier_cours,
-        video_cours: CoursInput.video_cours,
-        id_prof: CoursInput.id_prof,
-        id_unite: CoursInput.id_unite,
-    };
-    
-    console.log(data);
-      axios
-        .post("http://127.0.0.1:8000/api/cours", data)
-        .then((res) => {
-          if (res.data.status === 200) {
-            swal("Success", res.data.message, "success");
+      formData.append("id_unite", CoursInput.id_unite);
 
-            // Réinitialisez les champs du formulaire
-            resetForm();
-          } else if (res.data.status === 400) {
-            setCoursInput({
-              ...CoursInput,
-              error_list: res.data.error_list,
-            });
-          }
+      const response = await axios.post("http://127.0.0.1:8000/api/cours", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.status === 200) {
+        message.success(response.data.message);
+        resetForm();
+      } else if (response.data.status === 400) {
+        setCoursInput({
+          ...CoursInput,
+          error_list: response.data.error_list,
         });
+        message.error(response.data.error_list);
+      }
+    } catch (error) {
+      console.error("Validation failed:", error);
     }
   };
 
   useEffect(() => {
-    // Récupérer la liste des utilisateurs depuis l'API
-    axios.get("http://127.0.0.1:8000/api/uniteEnseigns").then((res) => {
-      if (res.data.status === 200) {
-        setUniteList(res.data.unites);
+    const fetchData = async () => {
+      try {
+        const resUnites = await axios.get("http://127.0.0.1:8000/api/uniteEnseigns");
+        if (resUnites.data.status === 200) {
+          setUniteList(resUnites.data.unites);
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
       }
-    });
-    
-    // Récupérer la liste des filières depuis l'API
-    axios.get("http://127.0.0.1:8000/api/professeurs").then((res) => {
-        if (res.data.status === 200) {
-            setProfesseurList(res.data.professeurs);  // mise à jour de ProfesseurList
-      }
-    });
-  }, []);
-  
-  return (
-    <div>
-      <div className="container py-5">
-        <div className="row justify-content-center">
-          <div className="col-md-8">
-            <div className="card">
-              <div className="card-header">
-                <h4>Ajouter un étudiant</h4>
-                <NavLink
-                  to="/admin/Cours"
-                  className="btn btn-primary btn-sm float-end"
-                >
-                  <UilArrowCircleLeft /> Retour à l'affichage
-                </NavLink>
-              </div>
-              <div className="container">
-                <div className="card-body">
-                  <form
-                    onSubmit={submitCours}
-                    id="Cours_FORM"
-                    encType="multipart/form-data"
-                  >
-                    {formError && (
-                      <div className="alert alert-danger mb-3">
-                        {formError}
-                      </div>
-                    )}
+    };
 
-                    <div className="form-group mb-3">
-                      <label htmlFor="libelle">libelle</label>
-                      <input
-                        type="text"
-                        name="libelle"
-                        className={`form-control ${
-                          CoursInput.error_list.libelle ? "is-invalid" : ""
-                        }`}
-                        onChange={handleInput}
-                        value={CoursInput.libelle}
-                      />
-                      {CoursInput.error_list.libelle && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.libelle}
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-group mb-3">
-                      <label htmlFor="image_cours">image_cours</label>
-                      <input
-                        type="text"
-                        name="image_cours"
-                        className={`form-control ${
-                          CoursInput.error_list.image_cours ? "is-invalid" : ""
-                        }`}
-                        onChange={handleInput}
-                        value={CoursInput.image_cours}
-                      />
-                      {CoursInput.error_list.image_cours && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.image_cours}
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-group mb-3">
-                      <label htmlFor="fichier_cours">Fichier</label>
-                      <input
-                        type="text"
-                        name="fichier_cours"
-                        className={`form-control ${
-                          CoursInput.error_list.fichier_cours ? "is-invalid" : ""
-                        }`}
-                        onChange={handleInput}
-                        value={CoursInput.fichier_cours}
-                      />
-                      {CoursInput.error_list.fichier_cours && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.fichier_cours}
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-group mb-3">
-                      <label htmlFor="video_cours">Video</label>
-                      <input
-                        type="text"
-                        name="video_cours"
-                        className={`form-control ${
-                          CoursInput.error_list.video_cours ? "is-invalid" : ""
-                        }`}
-                        onChange={handleInput}
-                        value={CoursInput.video_cours}
-                      />
-                      {CoursInput.error_list.video_cours && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.video_cours}
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-group mb-3">
-                      <label htmlFor="id_prof">Professeur</label>
-                      <select
-                        name="id_prof"
-                        onChange={handleInput}
-                        value={CoursInput.id_prof}
-                        className={`form-control ${
-                          CoursInput.error_list.id_prof ? "is-invalid" : ""
-                        }`}
-                      >
-                        <option value="">Sélectionner la filière</option>
-                        {ProfesseurList.map((prof) => (
-                          <option key={prof.id} value={prof.id}>
-                            {prof.name}
-                          </option>
-                        ))}
-                      </select>
-                      {CoursInput.error_list.id_prof && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.id_prof}
-                        </div>
-                        )}
-                    </div>
-                    <div className="form-group mb-3">
-                      <label htmlFor="id_unite">Unité d'enseignement</label>
-                      <select
-                        name="id_unite"
-                        onChange={handleInput}
-                        value={CoursInput.id}
-                        className={`form-control ${
-                          CoursInput.error_list.id ? "is-invalid" : ""
-                        }`}
-                      >
-                        <option value="">Sélectionner un unité d'enseignement</option>
-                        {UniteList.map((unite) => (
-                          <option key={unite.id_unite} value={unite.id_unite}>
-                            {unite.nom_unite}
-                          </option>
-                        ))}
-                      </select>
-                      {CoursInput.error_list.id && (
-                        <div className="text-danger">
-                          {CoursInput.error_list.id}
-                        </div>
-                        )}
-                    </div>
-                    <div className="row">
-                      <div className="col">
-                        <button
-                          type="submit"
-                          className="btn btn-primary btn-block mb-2"
-                        >
-                          <UilCheckCircle size="20" /> Confirmer
-                        </button>
-                      </div>
-                      <NavLink to="/admin/Cours" className="col">
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-block mb-2"
-                        >
-                          <UilTimes size="20" /> Annuler
-                        </button>
-                      </NavLink>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    fetchData();
+  }, []);
+
+  const handleInput = (name, value) => {
+    setCoursInput({
+      ...CoursInput,
+      [name]: value,
+    });
+  };
+
+  return (
+    <Space direction="vertical" style={{ width: "100%" }} size="large">
+      <Card>
+        <Typography.Title level={4}>Ajouter un cours</Typography.Title>
+        <Form
+          form={form}
+          onFinish={submitCours}
+          labelCol={{ span: 8 }}
+          wrapperCol={{ span: 16 }}
+          encType="multipart/form-data"
+        >
+          <Form.Item
+            label="Libellé du cours"
+            name="libelle"
+            rules={[{ required: true, message: "Le libellé est requis" }]}
+          >
+            <Input onChange={(e) => handleInput("libelle", e.target.value)} />
+          </Form.Item>
+          <Form.Item
+            label="Niveau du cours"
+            name="niveau_cours"
+            rules={[
+              { required: true, message: "Le niveau du cours est requis" },
+            ]}
+          >
+            <Select
+              placeholder="Sélectionner le niveau du cours"
+              onChange={(value) => handleInput("niveau_cours", value)}
+            >
+              <Option value="L1">L1</Option>
+              <Option value="L2">L2</Option>
+              <Option value="L3">L3</Option>
+              <Option value="M1">M1</Option>
+              <Option value="M2">M2</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Image du cours"
+            name="image_cours"
+            rules={[{ required: true, message: "L'image du cours est requise" }]}
+          >
+            <Upload
+              onChange={(info) => handleFileChange("imageFile", info.file, setImageFile)}
+            >
+              <Button>Uploader Image</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Fichier du cours"
+            name="fichier_cours"
+            rules={[{ required: true, message: "Le fichier du cours est requis" }]}
+          >
+            <Upload
+              onChange={(info) => handleFileChange("fileFile", info.file, setFileFile)}
+            >
+              <Button>Uploader Fichier</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Vidéo du cours"
+            name="video_cours"
+            rules={[{ required: true, message: "La vidéo du cours est requise" }]}
+          >
+            <Upload
+              onChange={(info) => handleVideoChange(info)}
+              beforeUpload={() => false}
+              multiple
+            >
+              <Button>Uploader Vidéo</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Unité d'enseignement"
+            name="id_unite"
+            rules={[
+              { required: true, message: "L'unité d'enseignement est requise" },
+            ]}
+          >
+            <Select placeholder="Sélectionner l'unité d'enseignement" onChange={(value) => handleInput("id_unite", value)}>
+              {UniteList.map((unite) => (
+                <Option key={unite.id_unite} value={unite.id_unite}>
+                  {unite.nom_unite}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+            <Space>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<CheckCircleOutlined />}
+              >
+                Ajouter
+              </Button>
+              <NavLink to="/user/Cours">
+                <Button type="default" icon={<CloseCircleOutlined />}>
+                  Annuler
+                </Button>
+              </NavLink>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
+    </Space>
   );
 };
 

@@ -23,7 +23,7 @@ const EditFiliere = () => {
           });
         } else if (res.data.status === 404) {
           Swal.fire('Erreur', res.data.message, 'error');
-          navigate('/admin/filieres');
+          navigate('/user/filieres');
         }
       });
   }, [id, navigate]);
@@ -44,7 +44,7 @@ const EditFiliere = () => {
       .then((res) => {
         if (res.data.status === 200) {
           Swal.fire('Succès', res.data.message, 'success');
-          navigate('/admin/filieres');
+          navigate('/user/filieres');
         } else if (res.data.status === 400) {
           setFiliereInput({
             ...filiereInput,
@@ -52,7 +52,7 @@ const EditFiliere = () => {
           });
         } else if (res.data.status === 404) {
           Swal.fire('Erreur', res.data.message, 'error');
-          navigate('/admin/filieres');
+          navigate('/user/filieres');
         }
       })
       .catch((error) => {
@@ -73,7 +73,7 @@ const EditFiliere = () => {
             <div className="card">
               <div className="card-header">
                 <h4>Modification de la filière</h4>
-                <NavLink to="/admin/filieres" className="btn btn-primary btn-sm float-end">
+                <NavLink to="/user/filieres" className="btn btn-primary btn-sm float-end">
                   <UilArrowCircleLeft /> Retour à l'affichage
                 </NavLink>
               </div>
@@ -109,7 +109,7 @@ const EditFiliere = () => {
                           <UilCheckCircle size="20" /> Confirmer
                         </button>
                       </div>
-                      <NavLink to="/admin/filieres" className="col">
+                      <NavLink to="/user/filieres" className="col">
                         <button
                           type="button"
                           className="btn btn-secondary btn-block mb-2"

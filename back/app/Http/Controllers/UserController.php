@@ -28,7 +28,24 @@ class UserController extends Controller
             'status' => 200
         ], 200);
     }
-    
+    public function countProfesseurForAuthenticatedUser(Request $request)
+{
+    // L'utilisateur authentifié est automatiquement disponible dans la requête
+    $user = $request->user();
+
+    // Vérifiez si l'utilisateur est authentifié
+    if ($user) {
+        // Comptez le nombre de lignes dans la table "professeurs" pour l'utilisateur authentifié
+        $professeurCount = DB::table('professeurs')
+            ->where('user_id', $user->id)
+            ->count();
+
+        return response()->json(['professeur_count' => $professeurCount]);
+    }
+
+    return response()->json(['message' => 'Utilisateur non authentifié'], 401);
+}
+
     public function comboUserProfesseurs() {
         $users = DB::table('users')
     ->whereNotIn('id', function ($query) {

@@ -1,0 +1,201 @@
+{
+    "info": {
+        "_postman_id": "4633aabb-a9da-4455-800b-e80fac3cec5b",
+        "name": "lio",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": ""
+    },
+    "item": [
+        {
+            "name": "logout",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://127.0.0.1:8000/api/logout",
+                    "path": [
+                        "api",
+                        "logout"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "127",
+                        "0",
+                        "0",
+                        "1"
+                    ],
+                    "port": "8000"
+                },
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "*/*",
+                        "disabled": true
+                    },
+                    {
+                        "key": "User-Agent",
+                        "value": "Thunder Client (https://www.thunderclient.com)",
+                        "disabled": true
+                    }
+                ],
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "84171d3dae057123c68a89ea289434540ea77b8d1cdb0038d17e01b83045ed5c",
+                            "type": "string"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "signup",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://127.0.0.1:8000/api/login",
+                    "path": [
+                        "api",
+                        "login"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "127",
+                        "0",
+                        "0",
+                        "1"
+                    ],
+                    "port": "8000"
+                },
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "username",
+                            "value": "Lio",
+                            "type": "default"
+                        },
+                        {
+                            "key": "password",
+                            "value": "lionel123",
+                            "type": "default"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "log out",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "http://127.0.0.1:8000/api/cours",
+                    "path": [
+                        "api",
+                        "cours"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "127",
+                        "0",
+                        "0",
+                        "1"
+                    ],
+                    "port": "8000"
+                },
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "User-Agent",
+                        "value": "Thunder Client (https://www.thunderclient.com)",
+                        "disabled": true
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\r\n    \"libelle\": \"Introduction\",\r\n    \"image_cours\": 10101010101,\r\n    \"fichier_cours\": 01010101011110,\r\n    \"video_cours\":00011110101011,\r\n    \"id_prof\": 1, \r\n    \"id_unite\": 1 \r\n}"
+                },
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "30|Ricg7eRUWDcqEkilhGgm5NHzoOWUS11oHaBQImODd2b164ec",
+                            "type": "string"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "users",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://127.0.0.1:8000/api/nom_etudiant",
+                    "path": [
+                        "api",
+                        "nom_etudiant"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "127",
+                        "0",
+                        "0",
+                        "1"
+                    ],
+                    "port": "8000"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\nlibelle: \"Maths\",\nfichier_cours: \"fichier_url\",\nid_prof: 1,\nid_unite: 1,\nimage_cours: \"image_url\",\nvideo_cours: \"video_url\"\n}\n"
+                }
+            }
+        },
+        {
+            "name": "poste",
+            "request": {
+                "method": "PUT",
+                "url": {
+                    "raw": "http://127.0.0.1:8000/api/users/1",
+                    "path": [
+                        "api",
+                        "users",
+                        "1"
+                    ],
+                    "protocol": "http",
+                    "host": [
+                        "127",
+                        "0",
+                        "0",
+                        "1"
+                    ],
+                    "port": "8000"
+                },
+                "body": {
+                    "mode": "raw",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    },
+                    "raw": "{\n  \n      \"username\": \"Lionel\",\n      \"email\": \"lionelark32@gmail.com\",\n      \"password\":\"lionel123\",\n      \"nom_entreprise\": \"Copefrito\",\n      \"role_user\": 0,\n      \"logo\": null,\n      \"sexe\": \"Homme\",\n      \"photo_profil_user\": null,\n      \"email_verified_at\": null\n      \n}"
+                }
+            }
+        }
+    ]
+}

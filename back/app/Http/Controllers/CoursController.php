@@ -3,8 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cours;
+use App\Models\Professeur;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
+
 
 class CoursController extends Controller
 {
@@ -12,17 +18,38 @@ class CoursController extends Controller
      * Affiche la liste des cours avec le nom de l'unité d'enseignement et du professeur.
      */
     public function index()
-{
-    $cours = Cours::join('unite_enseign', 'cours.id_unite', '=', 'unite_enseign.id_unite')
-        ->join('users', 'cours.id_prof', '=', 'users.id') // Jointure avec la table "users"
-        ->select('cours.*', 'unite_enseign.nom_unite', 'users.name as nom_professeur') // Sélection du nom d'utilisateur
-        ->get();
+    {
+        $user = Auth::user(); // Récupérer l'utilisateur authentifié
+    
 
-    return response()->json([
-        'cours' => $cours,
-        'status' => 200
-    ], 200);
-}
+        $professeurCount = DB::table('professeurs')
+        ->where('user_id', $user->id)
+        ->count();
+        $etudiant = DB::table('etudiants')
+        ->where('id_user', $user->id)
+        ->first();
+    
+        if ($professeurCount == 1) {
+            $cours = Cours::join('unite_enseign', 'cours.id_unite', '=', 'unite_enseign.id_unite')
+                ->join('professeurs', 'professeurs.id_prof', '=', 'cours.id_prof')
+                ->join('users', 'users.id', '=', 'professeurs.user_id')
+                ->select('cours.*', 'unite_enseign.nom_unite', 'users.name as nom_professeur')
+                ->get();
+        } else {
+            $cours = Cours::join('unite_enseign', 'cours.id_unite', '=', 'unite_enseign.id_unite')
+                ->join('professeurs', 'professeurs.id_prof', '=', 'cours.id_prof')
+                ->join('users', 'users.id', '=', 'professeurs.user_id')
+                ->select('cours.*', 'unite_enseign.nom_unite', 'users.name as nom_professeur')
+                ->where('cours.niveau_cours', $etudiant->niveau)
+                ->where('unite_enseign.id_filiere',$etudiant->id_filiere)
+                ->get();
+        }
+    
+        return response()->json([
+            'cours' => $cours,
+            'status' => 200
+        ], 200);
+    }
 
     /**
      * Crée un nouveau cours.
@@ -31,30 +58,75 @@ class CoursController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'libelle' => 'required|string',
-            'image_cours' => 'nullable',
-            'fichier_cours' => 'nullable',
-            'video_cours' => 'nullable',
-            'id_prof' => 'required|integer',
-            'id_unite' => 'required|integer',
+            'niveau_cours' => 'required|string',
+            'image_cours' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'fichier_cours' => 'nullable|mimes:pdf,doc,docx|max:2048',
+            'video_cours.*' => 'nullable|mimes:mp4,mov,avi|max:20480',
+            'id_unite' => 'required|exists:unite_enseign,id_unite',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => 400,
                 'error_list' => $validator->messages(),
             ], 400);
         }
-
+    
         try {
+            $user = Auth::user();
+    
+            // Vérifier si l'utilisateur est authentifié
+            if (!$user) {
+                return response()->json([
+                    'message' => "L'utilisateur n'est pas authentifié",
+                    'status' => 401
+                ], 401);
+            }
+    
+            // Utiliser l'id de l'utilisateur dans la requête
+            $professeur = Professeur::where('user_id', $user->id)->first();
+    
+            if (!$professeur) {
+                return response()->json([
+                    'message' => "L'utilisateur n'est pas un professeur",
+                    'status' => 401
+                ], 401);
+            }
+    
+            $imageFilename = null;
+            $fileFilename = null;
+            $videoFilenames = [];
+    
+            if ($request->hasFile('image_cours')) {
+                $imageFile = $request->file('image_cours');
+                $imageFilename = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+                $imageFile->move('uploads/cours/images', $imageFilename);
+            }
+    
+            if ($request->hasFile('fichier_cours')) {
+                $fileFile = $request->file('fichier_cours');
+                $fileFilename = Str::random(32) . '.' . $fileFile->getClientOriginalExtension();
+                $fileFile->move('uploads/cours/fichiers', $fileFilename);
+            }
+    
+            if ($request->hasFile('video_cours')) {
+                foreach ($request->file('video_cours') as $videoFile) {
+                    $videoFilename = Str::random(32) . '.' . $videoFile->getClientOriginalExtension();
+                    $videoFile->move('uploads/cours/videos', $videoFilename);
+                    $videoFilenames[] = $videoFilename;
+                }
+            }
+    
             Cours::create([
                 'libelle' => $request->libelle,
-                'image_cours' => $request->image_cours,
-                'fichier_cours' => $request->fichier_cours,
-                'video_cours' => $request->video_cours,
-                'id_prof' => $request->id_prof,
+                'niveau_cours' => $request->niveau_cours,
+                'image_cours' => $imageFilename,
+                'fichier_cours' => $fileFilename,
+                'video_cours' => implode(',', $videoFilenames), // You may adjust the format as needed
+                'id_prof' => $professeur->id_prof,
                 'id_unite' => $request->id_unite,
             ]);
-
+    
             return response()->json([
                 'message' => "Le cours a été créé avec succès",
                 'status' => 200
@@ -62,9 +134,13 @@ class CoursController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => "Il y a eu une erreur lors de l'insertion du cours",
+                'status' => 500
             ], 500);
         }
     }
+    
+
+    
 
     /**
      * Affiche les détails d'un cours spécifique avec le nom de l'unité d'enseignement et du professeur.
@@ -72,10 +148,11 @@ class CoursController extends Controller
     public function show(int $id)
 {
     $cours = Cours::join('unite_enseign', 'cours.id_unite', '=', 'unite_enseign.id_unite')
-        ->join('users', 'cours.id_prof', '=', 'users.id') // Jointure avec la table "users"
-        ->where('cours.code_matiere', $id)
-        ->select('cours.*', 'unite_enseign.*', 'users.*') // Sélection du nom d'utilisateur
-        ->first();
+                ->join('professeurs', 'professeurs.id_prof', '=', 'cours.id_prof')
+                ->join('users', 'users.id', '=', 'professeurs.user_id')
+                ->where('cours.code_matiere', $id)
+                ->select('cours.*', 'unite_enseign.nom_unite', 'users.name as nom_professeur')
+                ->get();
 
     if (!$cours) {
         return response()->json([

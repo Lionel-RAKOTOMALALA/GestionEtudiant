@@ -53,7 +53,7 @@ const EditCours = () => {
       } else if (res.data.status === 404) {
         setIsLoading(false);
         swal('Erreur', res.data.message, 'error');
-        navigate('/admin/cours');
+        navigate('/user/cours');
       }
     });
   }, [id, navigate]);
@@ -117,11 +117,14 @@ const EditCours = () => {
         id_unite: CoursInput.id_unite,
       };
       console.log(data);
-      axios.put(`http://127.0.0.1:8000/api/cours/${id}`, data)
-        .then((res) => {
+      axios.put(`http://127.0.0.1:8000/api/cours/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`, // Remplacez `votreToken` par le véritable token
+        },
+      }).then((res) => {
           if (res.data.status === 200) {
             swal('Succès', res.data.message, 'success');
-            navigate('/admin/cours');
+            navigate('/user/cours');
           } else if (res.data.status === 400) {
             setCoursInput({
               ...CoursInput,
@@ -148,7 +151,7 @@ const EditCours = () => {
             <div className="card">
               <div className="card-header">
                 <h4>Modification de l'étudiant</h4>
-                <NavLink to="/admin/cours" className="btn btn-primary btn-sm float-end">
+                <NavLink to="/user/cours" className="btn btn-primary btn-sm float-end">
                   <UilArrowCircleLeft /> Retour à l'affichage
                 </NavLink>
               </div>
@@ -274,7 +277,7 @@ const EditCours = () => {
                             <UilCheckCircle size="20" /> Confirmer
                           </button>
                         </div>
-                        <NavLink to="/admin/cours" className="col">
+                        <NavLink to="/user/cours" className="col">
                           <button
                             type="button"
                             className="btn btn-secondary btn-block mb-2"

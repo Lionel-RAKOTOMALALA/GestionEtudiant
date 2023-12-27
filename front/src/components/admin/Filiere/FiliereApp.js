@@ -11,7 +11,7 @@ const FiliereApp = () => {
       <p className="mb-5">
         Gérez les filières de votre établissement ici.
       </p>
-      <NavLink to="/admin/filieres/ajout">
+      <NavLink to="/user/filieres/ajout">
         <div className="d-flex justify-content-end">
           <button type="button" className="btn btn-primary mb-3">
             <UilPlus size="20" /> Ajouter une filière

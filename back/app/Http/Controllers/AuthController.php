@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -54,22 +55,39 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('name', $request->name)->first();
+        $user = User::where('name', $request->name)
+            ->orWhere('email', $request->name)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 401,
-                'message' => "Authentification invalide",
+                'message' => "Nom d'utilisateur ou adresse e-mail incorrect",
             ]);
         }
 
-        $token = $user->createToken($user->email . '_Token')->plainTextToken;
+        $role = '';
+        $token = '';
+
+        if ($user->role_user == 1) {
+            $token = $user->createToken($user->email . '_AdminToken', ['server:admin'])->plainTextToken;
+            $role = 'admin';
+        } else {
+            $token = $user->createToken($user->email . '_Token', ['server:userSimple'])->plainTextToken;
+            $role = 'userSimple';
+        }
+
+        // Comptez le nombre de lignes dans la table "professeurs" pour l'utilisateur authentifié
+        $professeurCount = DB::table('professeurs')
+            ->where('user_id', $user->id)
+            ->count();
 
         return response()->json([
             'status' => 200,
-            'name' => $user->name,
+            'role' => $role,
             'token' => $token,
-            'message' => 'L\'utilisateur a été authentifié avec succès',
+            'professeur_count' => $professeurCount,
+            'message' => "L'utilisateur a été authentifié avec succès",
         ]);
     }
 

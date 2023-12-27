@@ -29,7 +29,7 @@ const UniteEnseign = ({ uniteEnseign, refreshData }) => {
               refreshData();
             } else if (res.data.status === 404) {
               Swal.fire("Erreur", res.data.message, "error");
-              navigate("/admin/uniteEnseigns");
+              navigate("/user/uniteEnseigns");
             }
           })
           .catch((error) => {
@@ -46,7 +46,7 @@ const UniteEnseign = ({ uniteEnseign, refreshData }) => {
       <td>{uniteEnseign.id_filiere}</td>
       <td>
         <div style={{ marginRight: "1.2rem", display: "inline-block" }}>
-          <NavLink to={`/admin/uniteEnseign/edit/${uniteEnseign.id_unite}`}>
+          <NavLink to={`/user/uniteEnseign/edit/${uniteEnseign.id_unite}`}>
             <button className="btn btn-primary btn-sm equal-width-button">
               <UilEditAlt /> Modifier
             </button>
@@ -61,7 +61,7 @@ const UniteEnseign = ({ uniteEnseign, refreshData }) => {
           </button>
         </div>
         <div style={{ marginRight: "1.2rem", display: "inline-block" }}>
-          <NavLink to={`/admin/uniteEnseigns/${uniteEnseign.id_unite}`}>
+          <NavLink to={`/user/uniteEnseigns/${uniteEnseign.id_unite}`}>
             <button className="btn btn-primary btn-sm equal-width-button">
               <UilEye /> Voir
             </button>

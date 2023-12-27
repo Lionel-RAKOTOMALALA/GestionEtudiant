@@ -107,7 +107,7 @@ const TopBar = () => {
             <div className="dropdown-divider white-background"></div>
             <NavLink
               className="dropdown-item bg-white text-secondary"
-              to="/"
+              to="/login"
               onClick={logoutSubmit}
             >
               <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>

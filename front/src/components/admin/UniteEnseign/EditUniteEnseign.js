@@ -39,7 +39,7 @@ const EditUniteEnseign = () => {
       } else if (res.data.status === 404) {
         setIsLoading(false);
         swal('Erreur', res.data.message, 'error');
-        navigate('/admin/uniteEnseigns');
+        navigate('/user/uniteEnseigns');
       }
     });
   }, [id, navigate]);
@@ -90,7 +90,7 @@ const EditUniteEnseign = () => {
         .then((res) => {
           if (res.data.status === 200) {
             swal('Succès', res.data.message, 'success');
-            navigate('/admin/uniteEnseigns');
+            navigate('/user/uniteEnseigns');
           } else if (res.data.status === 400) {
             setUniteEnseignInput({
               ...UniteEnseignInput,
@@ -117,7 +117,7 @@ const EditUniteEnseign = () => {
             <div className="card">
               <div className="card-header">
                 <h4>Modification de l'unité d'enseignement</h4>
-                <NavLink to="/admin/uniteEnseigns" className="btn btn-primary btn-sm float-end">
+                <NavLink to="/user/uniteEnseigns" className="btn btn-primary btn-sm float-end">
                   <UilArrowCircleLeft /> Retour à l'affichage
                 </NavLink>
               </div>
@@ -179,7 +179,7 @@ const EditUniteEnseign = () => {
                             <UilCheckCircle size="20" /> Confirmer
                           </button>
                         </div>
-                        <NavLink to="/admin/uniteEnseigns" className="col">
+                        <NavLink to="/user/uniteEnseigns" className="col">
                           <button
                             type="button"
                             className="btn btn-secondary btn-block mb-2"

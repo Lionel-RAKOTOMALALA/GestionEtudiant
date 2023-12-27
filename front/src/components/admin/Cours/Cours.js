@@ -21,7 +21,11 @@ const Cours = ({ cours, refreshData }) => {
       cancelButtonText: 'Non',
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.delete(`http://127.0.0.1:8000/api/cours/${codeMatiere}`)
+        axios.delete(`http://127.0.0.1:8000/api/cours/${codeMatiere}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`, // Remplacez `votreToken` par le véritable token
+          },
+        })
           .then((res) => {
             if (res.data.status === 200) {
               Swal.fire('Success', res.data.message, 'success');
@@ -37,6 +41,7 @@ const Cours = ({ cours, refreshData }) => {
       }
     });
   }
+
 
   return (
     <tr>

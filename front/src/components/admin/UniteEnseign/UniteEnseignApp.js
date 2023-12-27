@@ -10,7 +10,7 @@ const UniteEnseignApp = () => {
       <p className="mb-5">
         Gérez les unités d'enseignement de votre établissement ici.
       </p>
-      <NavLink to="/admin/uniteEnseign/ajout">
+      <NavLink to="/user/uniteEnseign/ajout">
         <div className="d-flex justify-content-end">
           <button type="button" className="btn btn-primary mb-3">
             <UilPlus size="20" /> Ajouter une nouvelle unité d'enseignement

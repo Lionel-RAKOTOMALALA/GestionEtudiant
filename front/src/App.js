@@ -26,40 +26,62 @@ import EditUniteEnseign from './components/admin/UniteEnseign/EditUniteEnseign';
 import CoursApp from './components/admin/Cours/CoursApp';
 import CoursForm from './components/admin/Cours/CoursForm';
 import EditCours from './components/admin/Cours/EditCours';
+import Page403 from './403';
+import Page404 from './404';
+import PrivateRoute from './PrivateRoute';
+import PrivateRouteUserSimple from './PrivateUserSimpleRoute';
+import DetailCours from './components/admin/Cours/DetailCours';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 axios.defaults.headers.post['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
 function App() {
   // localStorage.clear();
+  const userRole = localStorage.getItem('role');
+  const isAdmin = userRole === 'admin';
+  const isUserSimple = userRole === 'userSimple';
+
+  // Racine des liens en fonction du rôle
+  const linkRoot = isAdmin ? '/admin' : isUserSimple ? '/user' : '';
   return (
     <Router>
       <Routes>
-        <Route path="/" element={localStorage.getItem('auth_token')?<Navigate to='/admin'/> : <Home />} />
-        <Route path="/register" element={localStorage.getItem('auth_token')?<Navigate to='/admin'/> : <Register />} />
-        <Route path="/login" element={localStorage.getItem('auth_token')?<Navigate to='/admin'/> : <Login />} />
-        <Route path="/admin" element={localStorage.getItem('auth_token')? <Navigate to='/admin'/> : <Navigate to='/login'/>}/>
-        <Route path="/admin" element={<Dashboard />}>
+      <Route path="/" element={ !!localStorage.getItem('auth_token') ? <Navigate to={linkRoot} /> : <Login />} /> 
+        <Route path="/login" element={!!localStorage.getItem('auth_token') ? <Navigate to={linkRoot} /> : <Login/>} />
+        <Route path="/admin" element={<PrivateRoute />}>
           <Route index element={<Content_dashboard />} /> 
           <Route path="profile" element={<Content_profil />} />
           <Route path='/admin/users' element={<UserApp/>}/>
           <Route path='/admin/users/ajout' element={<UserForm/>}/>
           <Route path='/admin/users/edit/:id' element={<EditUser/>}/>
-          <Route path='/admin/filieres' element={<FiliereApp/>}/>
-          <Route path='/admin/filieres/ajout' element={<FiliereForm/>}/>
-          <Route path='/admin/filieres/edit/:id' element={<EditFiliere/>}/>
           <Route path='/admin/etudiants' element={<EtudiantApp/>}/>
           <Route path='/admin/etudiants/ajout' element={<EtudiantForm/>}/>
           <Route path='/admin/etudiant/edit/:id' element={<EditEtudiant/>}/>
           <Route path='/admin/professeurs' element={<ProfesseurApp/>}/>
           <Route path='/admin/professeurs/ajout' element={<ProfesseurForm/>}/>
           <Route path='/admin/professeur/edit/:id' element={<EditProfesseur/>}/>
-          <Route path='/admin/uniteEnseigns' element={<UniteEnseignApp/>}/>
-          <Route path='/admin/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
-          <Route path='/admin/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
-          <Route path='/admin/cours' element={<CoursApp/>}/>
-          <Route path='/admin/cours/ajout' element={<CoursForm/>}/>
-          <Route path='/admin/cours/edit/:id' element={<EditCours/>}/>
+          
         </Route>
+
+        <Route path="/user" element={<PrivateRouteUserSimple/>}>
+          <Route index element={<Content_dashboard />} /> 
+          <Route path="profile" element={<Content_profil />} />
+          <Route path='/user/filieres' element={<FiliereApp/>}/>
+          <Route path='/user/filieres/ajout' element={<FiliereForm/>}/>
+          <Route path='/user/filieres/edit/:id' element={<EditFiliere/>}/>
+          <Route path='/user/uniteEnseigns' element={<UniteEnseignApp/>}/>
+          <Route path='/user/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
+          <Route path='/user/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
+          <Route path='/user/cours' element={<CoursApp/>}/>
+          <Route path='/user/cours/ajout' element={<CoursForm/>}/>
+          <Route path='/user/cours/edit/:id' element={<EditCours/>}/> 
+          <Route path='/user/detail_cours/:code_matiere' element={<DetailCours/>}/>
+        </Route>
+
+
+
+        <Route path="403" element={<Page403 />} />
+        <Route path="404" element={<Page404 />} />
+        <Route path="*" element={<Page404 />} />
       </Routes>
     </Router>
   );

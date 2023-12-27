@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('fichier_cours')->nullable(); // Colonne pour les fichiers (peut être NULL)
             $table->string('video_cours')->nullable(); // Colonne pour les vidéos (peut être NULL)
             $table->unsignedBigInteger('id_prof'); // Clé étrangère pour le professeur
+            $table->string('niveau_cours')->nullable();
             $table->unsignedBigInteger('id_unite'); // Clé étrangère pour l'unité d'enseignement
             $table->foreign('id_prof')->references('id_prof')->on('professeurs');
             $table->foreign('id_unite')->references('id_unite')->on('unite_enseign');

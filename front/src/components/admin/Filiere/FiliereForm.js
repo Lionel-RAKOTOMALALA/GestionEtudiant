@@ -26,7 +26,7 @@ function FiliereForm() {
       axios.post('http://127.0.0.1:8000/api/filieres', data).then(res => {
         if (res.data.status === 200) {
           Swal.fire('Succès', res.data.message, 'success');
-          navigate('/admin/filieres');
+          navigate('/user/filieres');
         } else {
           setFiliere({ ...filiereInput, error_list: res.data.validation_errors });
         }

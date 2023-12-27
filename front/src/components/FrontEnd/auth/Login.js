@@ -6,6 +6,12 @@
   const Login = () => {
 
     localStorage.getItem('auth_token')
+    const userRole = localStorage.getItem('role');
+    const isAdmin = userRole === 'admin';
+    const isUserSimple = userRole === 'userSimple';
+  
+    // Racine des liens en fonction du rôle
+    const linkRoot = isAdmin ? '/admin' : isUserSimple ? '/user' : '';
     
     const navigate = useNavigate();
     const [loginInput, setLogin] = useState({
@@ -31,13 +37,20 @@
       axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie').then(response => {
         axios.post(`http://127.0.0.1:8000/api/login`,data).then(res =>{
         if(res.data.status === 200){
-          // alert(res.data.token);
+          alert(res.data.token);
+          const user = JSON.stringify(res.data.user);
+          localStorage.setItem('user', user);
+          console.log(localStorage.getItem('user'));
+          localStorage.setItem('role', res.data.role);
           localStorage.setItem('auth_token', res.data.token);
-          localStorage.setItem('auth_name',res.data.name);
+          localStorage.setItem('professeur_count', res.data.professeur_count);
           swal('Success',res.data.message,"success");
-          navigate('/admin')
           //  window.location.reload();
-          alert(localStorage.getItem('auth_token'))
+          if (res.data.role === 'admin') {
+            navigate('/admin');
+          } else if (res.data.role === 'userSimple') {
+            navigate('/user');
+          }
         }else if(res.data.status === 401)
         {
           swal('Avertissement',res.data.message,"warning");

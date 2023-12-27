@@ -18,6 +18,7 @@ class Cours extends Model
         'image_cours',
         'fichier_cours',
         'video_cours',
+        'niveau_cours',
         'id_prof',
         'id_unite',
     ];

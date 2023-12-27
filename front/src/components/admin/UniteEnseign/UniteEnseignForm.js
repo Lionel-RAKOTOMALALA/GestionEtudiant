@@ -114,7 +114,7 @@ const UniteEnseignForm = () => {
               <div className="card-header">
                 <h4>Ajouter un étudiant</h4>
                 <NavLink
-                  to="/admin/uniteEnseigns"
+                  to="/user/uniteEnseigns"
                   className="btn btn-primary btn-sm float-end"
                 >
                   <UilArrowCircleLeft /> Retour à l'affichage
@@ -183,7 +183,7 @@ const UniteEnseignForm = () => {
                           <UilCheckCircle size="20" /> Confirmer
                         </button>
                       </div>
-                      <NavLink to="/admin/uniteEnseigns" className="col">
+                      <NavLink to="/user/uniteEnseigns" className="col">
                         <button
                           type="button"
                           className="btn btn-secondary btn-block mb-2"
