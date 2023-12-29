@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Card, Divider, List, Space, Image, Typography } from 'antd';
-import videojs from 'video.js';
-import 'video.js/dist/video-js.css';
+import { Card, Divider, Space,Image, Typography, List, Row, Col } from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -11,7 +9,12 @@ const DetailCours = () => {
   const { code_matiere } = useParams();
   const [coursDetails, setCoursDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const videoRef = useRef(null);
+
+  const handleVideoClick = (item) => {
+    setSelectedVideo(item);
+  };
 
   useEffect(() => {
     const fetchCoursDetails = async () => {
@@ -38,10 +41,14 @@ const DetailCours = () => {
   }, [code_matiere]);
 
   useEffect(() => {
-    if (coursDetails && videoRef.current) {
-      videojs(videoRef.current);
+    if (selectedVideo) {
+      const videoElement = videoRef.current;
+
+      // Charger la vidéo sélectionnée
+      videoElement.src = `http://localhost:8000/uploads/cours/videos/${selectedVideo}`;
+      videoElement.load();
     }
-  }, [coursDetails]);
+  }, [selectedVideo]);
 
   return (
     <div>
@@ -50,7 +57,7 @@ const DetailCours = () => {
         <p>Loading...</p>
       ) : coursDetails ? (
         <>
-          <div>
+         <div>
             <Space direction="vertical" style={{ width: '100%' }}>
               <Card
                 title={<Title level={3}>Course Information</Title>}
@@ -76,51 +83,65 @@ const DetailCours = () => {
             </Space>
           </div>
 
-          <Divider />
-
-          <Card className="video-list-card">
-            <Space direction="vertical">
-              <h3>Video Playlist</h3>
-              <List
-                bordered
-                dataSource={coursDetails.video_cours.split(',')}
-                renderItem={(item, index) => (
-                  <List.Item key={index}>
-                    <video
+          {/* Section pour la liste des vidéos et la vidéo sélectionnée dans une seule carte */}
+          <Row gutter={[16, 16]} style={{ backgroundColor: '#ffffff' }}>
+            {/* Section pour la liste des vidéos */}
+            <Col span={24}>
+              <Title
+                level={4}
+                style={{
+                  textAlign: 'center',
+                  padding: '8px',
+                  backgroundColor: '#ffffff',
+                }}
+              >
+                Video Playlist
+              </Title>
+            </Col>
+            <Col span={5}>
+              <Card size="small">
+                <List
+                  bordered
+                  dataSource={coursDetails.video_cours.split(',')}
+                  renderItem={(item) => (
+                    <List.Item
+                      key={item}
+                      onClick={() => handleVideoClick(item)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                     <video
                       ref={videoRef}
-                      className="video-js vjs-default-skin"
+                      className="video-js"
                       controls
-                      width="400"
+                      width="100%"
                       height="300"
                       data-setup={JSON.stringify({ fluid: true })}
                     >
                       <source src={`http://localhost:8000/uploads/cours/videos/${item}`} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
-                  </List.Item>
-                )}
-              />
-            </Space>
-          </Card>
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            </Col>
+
+            {/* Section pour afficher la vidéo sélectionnée à côté de la liste */}
+            {selectedVideo && (
+              <Col span={16} offset={1} style={{ marginTop: '20px' }}>
+                <Card size="small" style={{ borderRadius: '10px', height: '100%' }}>
+                  <video
+                    ref={videoRef}
+                    className="video-js vjs-default-skin vjs-big-play-centered"
+                    controls
+                    style={{ width: '100%', height: '70vh' }}
+                  />
+                </Card>
+              </Col>
+            )}
+          </Row>
 
           <Divider />
-
-          <Card>
-            <Space direction="vertical">
-              <h3>Files</h3>
-              <List
-                bordered
-                dataSource={[coursDetails.fichier_cours]}
-                renderItem={(item, index) => (
-                  <List.Item key={index}>
-                    <a href={`http://localhost:8000/uploads/cours/files/${item}`} target="_blank" rel="noopener noreferrer">
-                      {item}
-                    </a>
-                  </List.Item>
-                )}
-              />
-            </Space>
-          </Card>
         </>
       ) : (
         <p>Cours not found</p>
@@ -130,3 +151,4 @@ const DetailCours = () => {
 };
 
 export default DetailCours;
+  
