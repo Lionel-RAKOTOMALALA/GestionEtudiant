@@ -21,6 +21,7 @@ class Cours extends Model
         'niveau_cours',
         'id_prof',
         'id_unite',
+        'statut_cours',
     ];
 
 

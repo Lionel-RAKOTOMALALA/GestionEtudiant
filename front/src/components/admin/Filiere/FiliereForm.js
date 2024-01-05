@@ -1,38 +1,47 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import { Form, Input, Button, message } from 'antd';
 import { useNavigate } from 'react-router';
 
-function FiliereForm() {
+const FiliereForm = () => {
   const navigate = useNavigate();
-  const [filiereInput, setFiliere] = useState({
-    nom_filiere: '',
-    error_list: [],
-  });
+  const [form] = Form.useForm();
 
-  const handleInput = (e) => {
-    e.persist();
-    setFiliere({ ...filiereInput, [e.target.name]: e.target.value });
-  };
+  const registerFiliere = async (values) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/sanctum/csrf-cookie', {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-  const registerFiliere = (e) => {
-    e.preventDefault();
+      if (response.ok) {
+        const data = {
+          nom_filiere: values.nom_filiere,
+        };
 
-    const data = {
-      nom_filiere: filiereInput.nom_filiere,
-    };
+        const res = await fetch('http://127.0.0.1:8000/api/filieres', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        });
 
-    axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie').then(response => {
-      axios.post('http://127.0.0.1:8000/api/filieres', data).then(res => {
-        if (res.data.status === 200) {
-          Swal.fire('Succès', res.data.message, 'success');
+        const result = await res.json();
+
+        if (result.status === 200) {
+          message.success(result.message);
           navigate('/user/filieres');
         } else {
-          setFiliere({ ...filiereInput, error_list: res.data.validation_errors });
+          form.setFields([{ name: 'nom_filiere', errors: [result.validation_errors.nom_filiere] }]);
         }
-      });
-    });
-  }
+      } else {
+        message.error('Failed to set CSRF cookie.');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div>
@@ -44,16 +53,21 @@ function FiliereForm() {
                 <h4>Ajouter une filière</h4>
               </div>
               <div className="card-body">
-                <form onSubmit={registerFiliere}>
-                  <div className="form-group mb-3">
-                    <label>Nom de la filière</label>
-                    <input type="text" name="nom_filiere" onChange={handleInput} value={filiereInput.nom_filiere} className="form-control" />
-                    <span>{filiereInput.error_list.nom_filiere}</span>
-                  </div>
-                  <div className="form-group mb-3">
-                    <button type="submit" className="btn btn-primary">Ajouter</button>
-                  </div>
-                </form>
+                <Form form={form} onFinish={registerFiliere}>
+                  <Form.Item
+                    label="Nom de la filière"
+                    name="nom_filiere"
+                    rules={[{ required: true, message: 'Le nom de la filière est requis' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                      Ajouter
+                    </Button>
+                  </Form.Item>
+                </Form>
               </div>
             </div>
           </div>
@@ -61,6 +75,7 @@ function FiliereForm() {
       </div>
     </div>
   );
-}
+};
 
 export default FiliereForm;
+  

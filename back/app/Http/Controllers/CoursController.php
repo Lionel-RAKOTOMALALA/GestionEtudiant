@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cours;
 use App\Models\Professeur;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -51,28 +52,46 @@ class CoursController extends Controller
         ], 200);
     }
 
+    public function updateCoursStatus(Request $request, $id)
+    {
+        $cours = Cours::find($id);
+
+        if (!$cours) {
+            return response()->json(['message' => 'Cours non trouvé.'], 404);
+        }
+
+
+        $cours->statut_cours = 'Vue';
+
+        if ($cours->update()) {
+            return response()->json(['message' => 'Statut du cours mis à jour avec succès', 'status' => 200], 200);
+        } else {
+            return response()->json(['message' => 'Erreur lors de la modification du statut du cours.'], 500);
+        }
+    }
+
     /**
      * Crée un nouveau cours.
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'libelle' => 'required|string',
-            'niveau_cours' => 'required|string',
-            'image_cours' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'fichier_cours' => 'nullable|mimes:pdf,doc,docx|max:2048',
-            'video_cours.*' => 'nullable|mimes:mp4,mov,avi|max:20480',
-            'id_unite' => 'required|exists:unite_enseign,id_unite',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'error_list' => $validator->messages(),
-            ], 400);
-        }
-    
         try {
+            $validator = Validator::make($request->all(), [
+                'libelle' => 'required|string',
+                'niveau_cours' => 'required|string',
+                'image_cours' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'fichier_cours' => 'nullable|mimes:pdf,doc,docx|max:2048',
+                'video_cours.*' => 'nullable|mimes:mp4,mov,avi|max:20480',
+                'id_unite' => 'required|exists:unite_enseign,id_unite',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 400,
+                    'error_list' => $validator->messages(),
+                ], 400);
+            }
+    
             $user = Auth::user();
     
             // Vérifier si l'utilisateur est authentifié
@@ -117,14 +136,25 @@ class CoursController extends Controller
                 }
             }
     
-            Cours::create([
+            // Create the course
+            $course = Cours::create([
                 'libelle' => $request->libelle,
                 'niveau_cours' => $request->niveau_cours,
                 'image_cours' => $imageFilename,
                 'fichier_cours' => $fileFilename,
-                'video_cours' => implode(',', $videoFilenames), // You may adjust the format as needed
+                'video_cours' => implode(',', $videoFilenames),
                 'id_prof' => $professeur->id_prof,
                 'id_unite' => $request->id_unite,
+            ]);
+    
+            // Notify about the new course
+            $notificationContent = 'L\'utilisateur ' . Auth::user()->name . ' vient de créer un nouveau cours';
+    
+           
+            Notification::create([
+                'code_matiere' => $course->code_matiere, 
+                'title' => 'Nouveau cours',
+                'content' => $notificationContent,
             ]);
     
             return response()->json([

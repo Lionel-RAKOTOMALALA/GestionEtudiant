@@ -1,60 +1,85 @@
-// CoursList.js
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { EditOutlined, EllipsisOutlined, SettingOutlined } from "@ant-design/icons";
-import { Avatar, Card, Col, Row, Table } from "antd";
+import { Avatar, Card, Col, Row, Table, Spin } from "antd";
 import Loader from "../materiels/loader";
 
 const { Meta } = Card;
 
-const YourCustomCardComponent = ({ cours }) => (
-  <Link to={`/user/detail_cours/${cours.code_matiere}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-    <Card
-      hoverable
-      style={{
-        borderRadius: 10,
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        transition: "transform 0.3s",
-      }}
-      cover={
-        <img
-          alt={cours.libelle}
-          src={`http://localhost:8000/uploads/cours/images/${cours.image_cours}`}
-          style={{
-            objectFit: "cover",
-            borderRadius: "10px 10px 0 0",
-            height: "150px",
-            width: "100%",
-          }}
-        />
-      }
-      actions={[
-        <SettingOutlined key="setting" />,
-        <EditOutlined key="edit" />,
-        <EllipsisOutlined key="ellipsis" />,
-      ]}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.02)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-      }}
-    >
-      <Meta
-        avatar={<Avatar src={`http://localhost:8000/uploads/cours/images/${cours.image_cours}`} />}
-        title={<span style={{ fontSize: 18, textDecoration: 'none', color: 'inherit' }}>{cours.libelle}</span>}
-        description={
-          <div style={{ height: "50%", overflow: "hidden" }}>
-            <p style={{ marginBottom: 5, fontSize: 14, textDecoration: 'none', color: 'inherit' }}>Professeur: {cours.nom_professeur}</p>
-            <p style={{ marginBottom: 0, fontSize: 14, textDecoration: 'none', color: 'inherit' }}>Unité d'Enseignement: {cours.nom_unite}</p>
-          </div>
+const YourCustomCardComponent = ({ cours }) => {
+  const handleClick = () => {
+    const authToken = localStorage.getItem('auth_token');  
+
+    axios.put(`http://localhost:8000/api/update_statut_cours/${cours.code_matiere}`, null, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    })
+    .then((response) => {
+        alert(`Statut du cours mis à jour avec succès : ${response.data.message}`);
+    })
+    .catch((error) => {
+        console.error('Erreur lors de la mise à jour du statut du cours :', error);
+        alert('Erreur lors de la mise à jour du statut du cours');
+    });
+};
+
+
+
+  return (
+    <Link to={`/user/detail_cours/${cours.code_matiere}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Card
+        hoverable
+        style={{
+          borderRadius: 10,
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          transition: "transform 0.3s",
+          width: '100%',
+        }}
+        cover={
+          <img
+            alt={cours.libelle}
+            src={`http://localhost:8000/uploads/cours/images/${cours.image_cours}`}
+            style={{
+              objectFit: "cover",
+              borderRadius: "10px 10px 0 0",
+              height: "150px",
+              width: "100%",
+            }}
+          />
         }
-      />
-    </Card>
-  </Link>
-);
+        actions={[
+          <SettingOutlined key="setting" />,
+          <EditOutlined key="edit" />,
+          <EllipsisOutlined key="ellipsis" />,
+        ]}
+        onClick={handleClick}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.02)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+      >
+        <Meta
+          avatar={<Avatar src={`http://localhost:8000/uploads/cours/images/${cours.image_cours}`} />}
+          title={<span style={{ fontSize: 18, textDecoration: 'none', color: 'inherit' }}>{cours.libelle}</span>}
+          description={
+            <div style={{ height: "50%", overflow: "hidden" }}>
+              <p style={{ marginBottom: 5, fontSize: 14, textDecoration: 'none', color: 'inherit' }}>Professeur: {cours.nom_professeur}</p>
+              <p style={{ marginBottom: 0, fontSize: 14, textDecoration: 'none', color: 'inherit' }}>Unité d'Enseignement: {cours.nom_unite}</p>
+              {/* Condition pour épingler l'étiquette "Nouveau" */}
+              {cours.statut_cours === 'Nouveau cours' && (
+                <p style={{ fontSize: 14, color: 'green', textDecoration: 'none' }}>Nouveau</p>
+              )}
+            </div>
+          }
+        />
+      </Card>
+    </Link>
+  );
+};
 
 const CoursList = () => {
   const [cours, setCours] = useState([]);
@@ -158,7 +183,7 @@ const CoursList = () => {
       ) : (
         <Row gutter={[16, 16]} justify="space-around">
           {cours.map((cours) => (
-            <Col key={cours.code_matiere} xs={24} sm={12} md={8} lg={6} xl={4}>
+            <Col key={cours.code_matiere} xs={24} xl={6} style={{ marginBottom: '20px', width: '100%' }}>
               <YourCustomCardComponent cours={cours} />
             </Col>
           ))}

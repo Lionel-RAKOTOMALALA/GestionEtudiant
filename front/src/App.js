@@ -59,18 +59,18 @@ function App() {
           <Route path='/admin/professeurs' element={<ProfesseurApp/>}/>
           <Route path='/admin/professeurs/ajout' element={<ProfesseurForm/>}/>
           <Route path='/admin/professeur/edit/:id' element={<EditProfesseur/>}/>
+          <Route path='/admin/filieres' element={<FiliereApp/>}/>
+          <Route path='/admin/filieres/ajout' element={<FiliereForm/>}/>
+          <Route path='/admin/filieres/edit/:id' element={<EditFiliere/>}/>
+          <Route path='/admin/uniteEnseigns' element={<UniteEnseignApp/>}/>
+          <Route path='/admin/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
+          <Route path='/admin/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
           
         </Route>
 
         <Route path="/user" element={<PrivateRouteUserSimple/>}>
           <Route index element={<Content_dashboard />} /> 
           <Route path="profile" element={<Content_profil />} />
-          <Route path='/user/filieres' element={<FiliereApp/>}/>
-          <Route path='/user/filieres/ajout' element={<FiliereForm/>}/>
-          <Route path='/user/filieres/edit/:id' element={<EditFiliere/>}/>
-          <Route path='/user/uniteEnseigns' element={<UniteEnseignApp/>}/>
-          <Route path='/user/uniteEnseign/ajout' element={<UniteEnseignForm/>}/>
-          <Route path='/user/uniteEnseign/edit/:id' element={<EditUniteEnseign/>}/>
           <Route path='/user/cours' element={<CoursApp/>}/>
           <Route path='/user/cours/ajout' element={<CoursForm/>}/>
           <Route path='/user/cours/edit/:id' element={<EditCours/>}/> 

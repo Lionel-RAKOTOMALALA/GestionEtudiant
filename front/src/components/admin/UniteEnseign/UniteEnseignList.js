@@ -1,83 +1,110 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Space, Spin, Modal } from "antd";
 import axios from "axios";
-import UniteEnseign from "./UniteEnseign"; // Assurez-vous d'importer le composant approprié pour les unités d'enseignement
-import $ from "jquery";
-import Swal from "sweetalert2";
-import Loader from "../materiels/loader";
+import { useNavigate } from "react-router-dom";
 
-const UniteEnseignList = () => {
-  const [uniteEnseigns, setUniteEnseigns] = useState([]);
+const { confirm } = Modal;
+
+const ProfesseurList = () => {
+  const [professeurs, setProfesseurs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const tableRef = useRef(null);
+  const navigate = useNavigate();
 
   const destroyDataTable = () => {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
-    }
+    setProfesseurs([]);
   };
 
   const refreshData = () => {
     destroyDataTable();
-    axios.get("http://127.0.0.1:8000/api/uniteEnseigns") // Assurez-vous d'utiliser l'URL correcte
-      .then((response) => {
-        setUniteEnseigns(response.data.unites); // Assurez-vous que la réponse contient les données des unités d'enseignement
-        setIsLoading(false);
-        if (tableRef.current) {
-          $(tableRef.current).DataTable({
-            language: {
-              search: 'Rechercher :',
-              lengthMenu: 'Afficher _MENU_ éléments par page',
-              info: 'Affichage de _START_ à _END_ sur _TOTAL_ éléments',
-              infoEmpty: 'Aucun élément trouvé',
-              infoFiltered: '(filtré de _MAX_ éléments au total)',
-              paginate: {
-                first: 'Premier',
-                previous: 'Précédent',
-                next: 'Suivant',
-                last: 'Dernier'
-              }
-            }
-          });
-        }
-      });
+    setIsLoading(true);
+    axios.get("http://127.0.0.1:8000/api/professeurs").then((response) => {
+      setProfesseurs(response.data.professeurs);
+      setIsLoading(false);
+    });
   };
 
   useEffect(() => {
     refreshData();
   }, []);
 
+  const columns = [
+    {
+      title: "ID Professeur",
+      dataIndex: "id_prof",
+      key: "id_prof",
+    },
+    {
+      title: "Matière enseignée",
+      dataIndex: "matiere_enseign",
+      key: "matiere_enseign",
+    },
+    {
+      title: "Nom de l'utilisateur",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text, record) => (
+        <Space size="middle">
+          <Button type="primary" onClick={() => navigate(`/admin/professeur/edit/${record.id_prof}`)}>
+            Modifier
+          </Button>
+          <Button type="danger" onClick={() => showDeleteConfirm(record.id_prof)}>
+            Supprimer
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const showDeleteConfirm = (id) => {
+    confirm({
+      title: 'Confirmer la suppression',
+      content: 'Êtes-vous sûr de vouloir supprimer ce professeur ?',
+      okText: 'Oui',
+      okType: 'danger',
+      cancelText: 'Non',
+      onOk() {
+        deleteProfesseur(id);
+      },
+    });
+  };
+
+  const deleteProfesseur = (id) => {
+    axios.delete(`http://127.0.0.1:8000/api/professeurs/${id}`)
+      .then((res) => {
+        if (res.data.status === 200) {
+          Modal.success({
+            title: 'Success',
+            content: res.data.message,
+            onOk: refreshData,
+          });
+        } else if (res.data.status === 404) {
+          Modal.error({
+            title: 'Erreur',
+            content: res.data.message,
+            onOk: () => navigate('/admin/professeurs'),
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   return (
     <div>
       <div className="card shadow mb-4">
         <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">Liste des unités d'enseignement</h6>
+          <h6 className="m-0 font-weight-bold text-primary">Liste des professeurs</h6>
         </div>
         <div className="card-body">
           {isLoading ? (
-            <Loader />
+            <Spin size="large" />
           ) : (
-            <div className="table-responsive">
-              <table
-                ref={tableRef}
-                className="table table-bordered table-striped"
-                width="100%"
-                cellSpacing="0"
-              >
-                <thead>
-                  <tr>
-                    <th>ID Unité</th>
-                    <th>Nom de l'Unité</th>
-                    <th>ID de la Filière</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {uniteEnseigns.map((uniteEnseign) => (
-                    <UniteEnseign key={uniteEnseign.id_unite} uniteEnseign={uniteEnseign} refreshData={refreshData} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table columns={columns} dataSource={professeurs} />
           )}
         </div>
       </div>
@@ -85,4 +112,4 @@ const UniteEnseignList = () => {
   );
 };
 
-export default UniteEnseignList;
+export default ProfesseurList;

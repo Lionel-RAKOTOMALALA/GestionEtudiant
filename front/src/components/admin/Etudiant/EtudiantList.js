@@ -1,44 +1,93 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Space, Spin } from "antd";
 import axios from "axios";
-import Etudiant from "./Etudiant"; // Assurez-vous d'importer le composant approprié pour les étudiants
-import $ from "jquery";
 import Swal from "sweetalert2";
-import Loader from "../materiels/loader";
+import { UilEditAlt, UilTrashAlt, UilEye, UilCheckCircle } from "@iconscout/react-unicons";
+import { useNavigate } from "react-router-dom";
 
 const EtudiantList = () => {
   const [etudiants, setEtudiants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const tableRef = useRef(null);
+  const navigate = useNavigate();
 
-  const destroyDataTable = () => {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
-    }
+  const columns = [
+    {
+      title: "Numéro d'Inscription",
+      dataIndex: "num_inscription",
+      key: "num_inscription",
+    },
+    {
+      title: "Niveau",
+      dataIndex: "niveau",
+      key: "niveau",
+    },
+    {
+      title: "Parcours",
+      dataIndex: "parcours",
+      key: "parcours",
+    },
+    {
+      title: "Nom de la Filière",
+      dataIndex: "nom_filiere",
+      key: "nom_filiere",
+    },
+    {
+      title: "Nom de l'Etudiant",
+      dataIndex: "nom_utilisateur",
+      key: "nom_utilisateur",
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text, record) => (
+        <Space size="middle">
+          <Button type="primary" onClick={() => navigate(`/admin/etudiant/edit/${record.num_inscription}`)}>
+            <UilEditAlt /> Modifier
+          </Button>
+          <Button type="danger" onClick={() => deleteEtudiant(record.num_inscription)}>
+            <UilTrashAlt /> Supprimer
+          </Button>
+          <Button type="primary" onClick={() => navigate(`/admin/etudiants/${record.num_inscription}`)}>
+            <UilEye /> View
+          </Button>
+         
+        </Space>
+      ),
+    },
+  ];
+
+  const deleteEtudiant = (numInscription) => {
+    Swal.fire({
+      title: 'Confirmer la suppression',
+      text: `Êtes-vous sûr de vouloir supprimer l'étudiant avec le numéro d'inscription ${numInscription} ?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Non',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://127.0.0.1:8000/api/etudiants/${numInscription}`)
+          .then((res) => {
+            if (res.data.status === 200) {
+              Swal.fire('Success', res.data.message, 'success');
+              refreshData();
+            } else if (res.data.status === 404) {
+              Swal.fire("Erreur", res.data.message, "error");
+              navigate('/admin/etudiants');
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    });
   };
 
   const refreshData = () => {
-    destroyDataTable();
-    axios.get("http://127.0.0.1:8000/api/etudiants") // Assurez-vous d'utiliser l'URL correcte
+    axios.get("http://127.0.0.1:8000/api/etudiants")
       .then((response) => {
-        setEtudiants(response.data.etudiants); // Assurez-vous que la réponse contient les données des étudiants
+        setEtudiants(response.data.etudiants);
         setIsLoading(false);
-        if (tableRef.current) {
-          $(tableRef.current).DataTable({
-            language: {
-              search: 'Rechercher :',
-              lengthMenu: 'Afficher _MENU_ éléments par page',
-              info: 'Affichage de _START_ à _END_ sur _TOTAL_ éléments',
-              infoEmpty: 'Aucun élément trouvé',
-              infoFiltered: '(filtré de _MAX_ éléments au total)',
-              paginate: {
-                first: 'Premier',
-                previous: 'Précédent',
-                next: 'Suivant',
-                last: 'Dernier'
-              }
-            }
-          });
-        }
       });
   };
 
@@ -54,32 +103,9 @@ const EtudiantList = () => {
         </div>
         <div className="card-body">
           {isLoading ? (
-            <Loader />
+            <Spin size="large" />
           ) : (
-            <div className="table-responsive">
-              <table
-                ref={tableRef}
-                className="table table-bordered table-striped"
-                width="100%"
-                cellSpacing="0"
-              >
-                <thead>
-                  <tr>
-                    <th>Numéro d'Inscription</th>
-                    <th>Niveau</th>
-                    <th>Parcours</th>
-                    <th>Nom de la Filière</th>
-                    <th>Nom de l'Etudiant</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {etudiants.map((etudiant) => (
-                    <Etudiant key={etudiant.num_inscription} etudiant={etudiant} refreshData={refreshData} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table columns={columns} dataSource={etudiants} />
           )}
         </div>
       </div>

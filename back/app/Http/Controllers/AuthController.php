@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
 
 class AuthController extends Controller
 {
@@ -17,6 +19,8 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|min:8',
             'role_user' => 'required',
+            'photo_profil' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:552929',
+
         ]);
 
         if ($validator->fails()) {
@@ -24,12 +28,22 @@ class AuthController extends Controller
                 'validation_errors' => $validator->messages(),
             ]);
         }
+        if ($request->hasFile('photo_profil')) {
+            $profileFile = $request->file('photo_profil');
+            $profileExtension = $profileFile->getClientOriginalExtension();
+            $profileFilename = Str::random(32) . '.' . $profileExtension;
+            $profileFile->move('uploads/users', $profileFilename);
+        } else {
+            $profileFilename = null;
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_user' => $request->role_user,
+            'photo_profil' => $profileFilename,
+
         ]);
 
         $token = $user->createToken($user->email . '_Token')->plainTextToken;

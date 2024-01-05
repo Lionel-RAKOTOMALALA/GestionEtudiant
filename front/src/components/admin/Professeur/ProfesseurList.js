@@ -1,50 +1,118 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
-import Professeur from "./Professeur"; // Assurez-vous d'importer le composant Professeur
-import $ from "jquery";
-import Swal from "sweetalert2";
-import Loader from "../materiels/loader";
+import { Table, Button, Space, Spin, Modal } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+
+const { confirm } = Modal;
 
 const ProfesseurList = () => {
   const [professeurs, setProfesseurs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const tableRef = useRef(null);
+  const navigate = useNavigate();
 
   const destroyDataTable = () => {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
+    if (tableRef.current) {
+      tableRef.current = null;
     }
   };
 
-  const refreshData = () => {
+  const refreshData = async () => {
     destroyDataTable();
-    axios.get("http://127.0.0.1:8000/api/professeurs") // Utilisez la route appropriée pour les professeurs
-      .then((response) => {
-        setProfesseurs(response.data.professeurs); // Assurez-vous de renommer la clé en fonction de votre réponse JSON
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/professeurs");
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfesseurs(data.professeurs);
         setIsLoading(false);
-        if (tableRef.current) {
-          $(tableRef.current).DataTable({
-            language: {
-              search: 'Rechercher :',
-              lengthMenu: 'Afficher _MENU_ éléments par page',
-              info: 'Affichage de _START_ à _END_ sur _TOTAL_ éléments',
-              infoEmpty: 'Aucun élément trouvé',
-              infoFiltered: '(filtré de _MAX_ éléments au total)',
-              paginate: {
-                first: 'Premier',
-                previous: 'Précédent',
-                next: 'Suivant',
-                last: 'Dernier'
-              }
-            }
-          });
-        }
-      });
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
     refreshData();
   }, []);
+
+  const columns = [
+    {
+      title: "ID Professeur",
+      dataIndex: "id_prof",
+      key: "id_prof",
+    },
+    {
+      title: "Matière enseignée",
+      dataIndex: "matiere_enseign",
+      key: "matiere_enseign",
+    },
+    {
+      title: "Nom de l'utilisateur",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text, record) => (
+        <Space size="middle">
+          <Button type="primary" onClick={() => navigate(`/admin/professeur/edit/${record.id_prof}`)}>
+            Modifier
+          </Button>
+          <Button type="danger" onClick={() => showDeleteConfirm(record.id_prof)}>
+            Supprimer
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const showDeleteConfirm = (id) => {
+    confirm({
+      title: 'Confirmer la suppression',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Êtes-vous sûr de vouloir supprimer ce professeur ?',
+      okText: 'Oui',
+      okType: 'danger',
+      cancelText: 'Non',
+      onOk() {
+        deleteProfesseur(id);
+      },
+      onCancel() {
+        console.log('Annulation');
+      },
+    });
+  };
+
+  const deleteProfesseur = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/professeurs/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.status === 200) {
+          Modal.success({
+            title: 'Success',
+            content: data.message,
+            onOk: refreshData,
+          });
+        } else if (data.status === 404) {
+          Modal.error({
+            title: 'Erreur',
+            content: data.message,
+            onOk: () => navigate('/admin/professeurs'),
+          });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div>
@@ -54,30 +122,9 @@ const ProfesseurList = () => {
         </div>
         <div className="card-body">
           {isLoading ? (
-            <Loader />
+            <Spin size="large" />
           ) : (
-            <div className="table-responsive">
-              <table
-                ref={tableRef}
-                className="table table-bordered table-striped"
-                width="100%"
-                cellSpacing="0"
-              >
-                <thead>
-                  <tr>
-                    <th>ID Professeur</th>
-                    <th>Matière enseignée</th>
-                    <th>Nom de l'utilisateur</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {professeurs.map((professeur) => (
-                    <Professeur key={professeur.id_prof} professeur={professeur} refreshData={refreshData} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table columns={columns} dataSource={professeurs} />
           )}
         </div>
       </div>

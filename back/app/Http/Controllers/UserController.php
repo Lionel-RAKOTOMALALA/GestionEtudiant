@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 class UserController extends Controller
 {
@@ -92,6 +94,22 @@ class UserController extends Controller
             'message' => "L'utilisateur a été créé avec succès",
             'status' => 200
         ], 200);
+    }
+
+    public function getUserData(){
+
+        $user = Auth::user();
+
+        $notification = DB::table('notifications')
+        ->join('cours', 'notifications.id', '=', 'cours.code_matiere')
+        ->join('professeurs', 'cours.id_prof', '=', 'professeurs.id_prof')
+        ->select('*')
+        ->get();
+          return response()->json([
+            'user' => $user,
+            'notification' => $notification
+        ], 200);
+
     }
 
     /**

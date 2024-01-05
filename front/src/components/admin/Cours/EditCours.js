@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
-import { UilArrowCircleLeft, UilCheckCircle, UilTimes } from '@iconscout/react-unicons';
+import { ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Form, Input, Select, Button, Row, Col, Spin, Card } from 'antd';
 import swal from 'sweetalert';
 import axios from 'axios';
 import Loader from '../../admin/materiels/loader';
+
+const { Option } = Select;
 
 const EditCours = () => {
   const navigate = useNavigate();
@@ -13,13 +16,13 @@ const EditCours = () => {
   const [CoursInput, setCoursInput] = useState({
     libelle: "",
     image_cours: "",
-    fichier_cours : "",
+    fichier_cours: "",
     video_cours: "",
     id_prof: "",
     id_unite: "",
     error_list: {},
   });
-  const [formError, setFormError] = useState('');
+  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,8 +48,8 @@ const EditCours = () => {
           image_cours: res.data.cours.image_cours,
           fichier_cours: res.data.cours.fichier_cours,
           video_cours: res.data.cours.video_cours,
-          id_prof: res.data.cours.id_prof, 
-          id_unite: res.data.cours.id_unite, 
+          id_prof: res.data.cours.id_prof,
+          id_unite: res.data.cours.id_unite,
           error_list: {},
         });
         setIsLoading(false);
@@ -58,70 +61,24 @@ const EditCours = () => {
     });
   }, [id, navigate]);
 
-  const updateEtudiant = (e) => {
-    e.preventDefault();
-
-    // Réinitialisez les messages d'erreur
-    setCoursInput({
-      ...CoursInput,
-      error_list: {},
-    });
-    setFormError('');
-
-    // Validation côté client
-    const errors = {};
-    if (CoursInput.libelle === "") {
-        errors.libelle = "Le libelle est requis";
-      }
-      if (CoursInput.image_cours === "") {
-        errors.image_cours = "Le image_cours est requis";
-      }
-      if (CoursInput.fichier_cours === "") {
-        errors.image_cours = "Le fichier_cours est requis";
-      }
-      if (CoursInput.video_cours === "") {
-        errors.image_cours = "Le video_cours est requis";
-      }
-      if (CoursInput.id_prof === "") {
-        errors.id_prof = "La filière est requise";
-      }
-      if (CoursInput.id === "") {
-        errors.id = "L'utilisateur est requis";
-      }
-
-    if (Object.keys(errors).length > 0) {
-      // Il y a des erreurs, affichez-les dans le formulaire
-      let errorString;
-      if (Object.keys(errors).length > 1) {
-        const errorFields = Object.keys(errors).join(' et ');
-        errorString = `Les champs "${errorFields}" sont requis`;
-      } else {
-        const errorField = Object.keys(errors)[0];
-        errorString = `Le champ '${errorField}' est requis`;
-      }
-
-      setCoursInput({
-        ...CoursInput,
-        error_list: errors,
-      });
-      setFormError(errorString);
-      swal('Erreurs', errorString, 'error');
-    } else {
-      // Pas d'erreurs, procéder à la requête Axios
+  const updateEtudiant = async () => {
+    try {
+      const values = await form.validateFields();
       const data = {
-        libelle: CoursInput.libelle,
-        image_cours: CoursInput.image_cours,
-        fichier_cours : CoursInput.fichier_cours,
-        video_cours: CoursInput.video_cours,
-        id_prof: CoursInput.id_prof,
-        id_unite: CoursInput.id_unite,
+        libelle: values.libelle,
+        image_cours: values.image_cours,
+        fichier_cours: values.fichier_cours,
+        video_cours: values.video_cours,
+        id_prof: values.id_prof,
+        id_unite: values.id_unite,
       };
-      console.log(data);
+
       axios.put(`http://127.0.0.1:8000/api/cours/${id}`, data, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`, // Remplacez `votreToken` par le véritable token
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
         },
-      }).then((res) => {
+      })
+        .then((res) => {
           if (res.data.status === 200) {
             swal('Succès', res.data.message, 'success');
             navigate('/user/cours');
@@ -135,6 +92,8 @@ const EditCours = () => {
         .catch((error) => {
           console.error(error);
         });
+    } catch (errorInfo) {
+      console.log('Failed:', errorInfo);
     }
   };
 
@@ -142,17 +101,17 @@ const EditCours = () => {
     e.persist();
     setCoursInput({ ...CoursInput, [e.target.name]: e.target.value });
   };
-  console.log(CoursInput.id);
+
   return (
     <div>
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-md-6">
-            <div className="card">
+            <Card title="Modification de l'étudiant">
               <div className="card-header">
                 <h4>Modification de l'étudiant</h4>
                 <NavLink to="/user/cours" className="btn btn-primary btn-sm float-end">
-                  <UilArrowCircleLeft /> Retour à l'affichage
+                  <ArrowLeftOutlined /> Retour à l'affichage
                 </NavLink>
               </div>
               <div className="container">
@@ -160,137 +119,118 @@ const EditCours = () => {
                   {isLoading ? (
                     <Loader />
                   ) : (
-                    <form onSubmit={updateEtudiant}>
-                      {formError && (
-                        <div className="alert alert-danger mb-3">
-                          {formError}
-                        </div>
-                      )}
-                      <div className="form-group mb-3">
-                        <label htmlFor="libelle">libelle</label>
-                        <input
-                          type="text"
-                          name="libelle"
-                          className={`form-control ${CoursInput.error_list.libelle ? 'is-invalid' : ''}`}
-                          onChange={handleInput}
-                          value={CoursInput.libelle}
-                        />
-                        {CoursInput.error_list.libelle && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.libelle}
-                          </div>
-                        )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="image_cours">image_cours</label>
-                        <input
-                          type="text"
-                          name="image_cours"
-                          className={`form-control ${CoursInput.error_list.image_cours ? 'is-invalid' : ''}`}
-                          onChange={handleInput}
-                          value={CoursInput.image_cours}
-                        />
-                        {CoursInput.error_list.image_cours && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.image_cours}
-                          </div>
-                        )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="fichier_cours">Fichier du cours</label>
-                        <input
-                          type="text"
-                          name="fichier_cours"
-                          className={`form-control ${CoursInput.error_list.image_cours ? 'is-invalid' : ''}`}
-                          onChange={handleInput}
-                          value={CoursInput.fichier_cours}
-                        />
-                        {CoursInput.error_list.fichier_cours && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.fichier_cours}
-                          </div>
-                        )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="video_cours">Video du cours</label>
-                        <input
-                          type="text"
-                          name="video_cours"
-                          className={`form-control ${CoursInput.error_list.video_cours ? 'is-invalid' : ''}`}
-                          onChange={handleInput}
-                          value={CoursInput.video_cours}
-                        />
-                        {CoursInput.error_list.video_cours && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.video_cours}
-                          </div>
-                        )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="id_prof">Professeur</label>
-                        <select
-                          name="id_prof"
-                          onChange={handleInput}
-                          value={CoursInput.id_prof}
-                          className={`form-control ${CoursInput.error_list.id_prof ? 'is-invalid' : ''}`}
-                        >
-                          <option value="">Sélectionner le professeur</option>
+                    <Form form={form} onFinish={updateEtudiant}>
+                      <Form.Item
+                        label="Libellé"
+                        name="libelle"
+                        initialValue={CoursInput.libelle}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Le libellé est requis",
+                          },
+                        ]}
+                      >
+                        <Input onChange={handleInput} />
+                      </Form.Item>
+                      <Form.Item
+                        label="Image du cours"
+                        name="image_cours"
+                        initialValue={CoursInput.image_cours}
+                        rules={[
+                          {
+                            required: true,
+                            message: "L'image du cours est requise",
+                          },
+                        ]}
+                      >
+                        <Input onChange={handleInput} />
+                      </Form.Item>
+                      <Form.Item
+                        label="Fichier du cours"
+                        name="fichier_cours"
+                        initialValue={CoursInput.fichier_cours}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Le fichier du cours est requis",
+                          },
+                        ]}
+                      >
+                        <Input onChange={handleInput} />
+                      </Form.Item>
+                      <Form.Item
+                        label="Video du cours"
+                        name="video_cours"
+                        initialValue={CoursInput.video_cours}
+                        rules={[
+                          {
+                            required: true,
+                            message: "La vidéo du cours est requise",
+                          },
+                        ]}
+                      >
+                        <Input onChange={handleInput} />
+                      </Form.Item>
+                      <Form.Item
+                        label="Professeur"
+                        name="id_prof"
+                        initialValue={CoursInput.id_prof}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Le professeur est requis",
+                          },
+                        ]}
+                      >
+                        <Select>
+                          <Option value="">Sélectionner le professeur</Option>
                           {ProfesseurList.map((prof) => (
-                            <option key={prof.id_prof} value={prof.id_prof} selected={prof.name === CoursInput.id_prof}>
+                            <Option key={prof.id_prof} value={prof.id_prof}>
                               {prof.name}
-                            </option>
+                            </Option>
                           ))}
-                        </select>
-                        {CoursInput.error_list.id_prof && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.id_prof}
-                          </div>
-                        )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="id_unite">Unité d'enseignement</label>
-                        <select
-                          name="id_unite"
-                          onChange={handleInput}
-                          value={CoursInput.id_unite}
-                          className={`form-control ${CoursInput.error_list.id_unite ? 'is-invalid' : ''}`}
-                        >
-                          <option value="">Sélectionner l'utilisateur</option>
+                        </Select>
+                      </Form.Item>
+                      <Form.Item
+                        label="Unité d'enseignement"
+                        name="id_unite"
+                        initialValue={CoursInput.id_unite}
+                        rules={[
+                          {
+                            required: true,
+                            message: "L'unité d'enseignement est requise",
+                          },
+                        ]}
+                      >
+                        <Select>
+                          <Option value="">Sélectionner l'unité d'enseignement</Option>
                           {UniteList.map((unite) => (
-                            <option key={unite.id_unite} value={unite.id_unite} selected={unite.id_unite === CoursInput.id_unite}>
+                            <Option key={unite.id_unite} value={unite.id_unite}>
                               {unite.nom_unite}
-                            </option>
+                            </Option>
                           ))}
-                        </select>
-                        {CoursInput.error_list.id_unite && (
-                          <div className="text-danger">
-                            {CoursInput.error_list.id_unite}
-                          </div>
-                        )}
-                      </div>
-                      <div className="row">
-                        <div className="col">
-                          <button
-                            type="submit"
-                            className="btn btn-primary btn-block mb-2"
-                          >
-                            <UilCheckCircle size="20" /> Confirmer
-                          </button>
-                        </div>
-                        <NavLink to="/user/cours" className="col">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-block mb-2"
-                          >
-                            <UilTimes size="20" /> Annuler
-                          </button>
-                        </NavLink>
-                      </div>
-                    </form>
+                        </Select>
+                      </Form.Item>
+                      <Row>
+                        <Col>
+                          <Button type="primary" htmlType="submit" block>
+                            <CheckCircleOutlined /> Confirmer
+                          </Button>
+                        </Col>
+                        <Col>
+                          <NavLink to="/user/cours">
+                            <Button type="default" block>
+                              <CloseCircleOutlined /> Annuler
+                            </Button>
+                          </NavLink>
+                        </Col>
+                      </Row>
+                    </Form>
                   )}
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>

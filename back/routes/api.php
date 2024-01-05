@@ -12,6 +12,8 @@ use App\Http\Controllers\UploadController;
 
 Route::middleware('auth:sanctum', 'isAPIAdmin')->group( function () {
 Route::get('countProfesseurForAuthenticatedUser',[UserController::class,'countProfesseurForAuthenticatedUser']);
+Route::get('/user', [UserController::class, 'getUserData']); 
+
 
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('/checkingAuthenticated', function(){
@@ -19,8 +21,10 @@ Route::get('countProfesseurForAuthenticatedUser',[UserController::class,'countPr
     });
 });
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [UserController::class, 'getUserData']); 
     
 Route::resource('cours', CoursController::class);
+Route::put('update_statut_cours/{id}', [CoursController::class,'updateCoursStatus']);
     Route::post('logout', [AuthController::class, 'logout']);
 Route::get('countProfesseurForAuthenticatedUser',[UserController::class,'countProfesseurForAuthenticatedUser']);
     Route::get('/checkingAuthenticatedUserSimple', function(){

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { UilUserCircle, UilTicket } from '@iconscout/react-unicons';
+import { Menu } from 'antd';
+import {
+  DashboardOutlined,
+  AppstoreAddOutlined,
+  BookOutlined,
+} from '@ant-design/icons';
 
 function Sidebar() {
   const [style, setStyle] = useState("navbar-nav bg-gradient-primary sidebar sidebar-dark accordion");
@@ -15,6 +21,12 @@ console.log(localStorage.getItem('professeur_count'));
 
   const location = useLocation();
   const userRole = localStorage.getItem('role');
+  
+  const isAdmin = userRole === 'admin';
+  const isUserSimple = userRole === 'userSimple';
+
+  // Racine des liens en fonction du rôle
+  const linkRoot = isAdmin ? '/admin' : isUserSimple ? '/user' : '';
 
   return (
     <ul className={style} id="accordionSidebar">
@@ -32,15 +44,8 @@ console.log(localStorage.getItem('professeur_count'));
       {/* Divider */}
       <hr className="sidebar-divider my-0" />
 
-      {/* Nav Item - Dashboard */}
-      <li className="nav-item">
-        <NavLink className="nav-link text-white" to="/admin">
-          <i className="fas fa-fw fa-tachometer-alt"></i>
-          <span>Tableau de bord</span>
-        </NavLink>
-      </li>
-
-      {/* Divider */}
+   
+  
       <hr className="sidebar-divider" />
 
       {/* Listes des données */}
@@ -70,62 +75,62 @@ console.log(localStorage.getItem('professeur_count'));
           </li>
         </>
       )}
-
       {/* Divider */}
       <hr className="sidebar-divider" />
-
+  
+      {/* Listes des données */}
+      {userRole === 'admin' && (
+        <>
+          <div className="sidebar-heading">Listes des données</div>
+          <li className="nav-item">
+            {/* ... (existing code) */}
+            <NavLink className="collapse-item" to={`${linkRoot}/etudiants`}>
+              Tous
+            </NavLink>
+          </li>
+        </>
+      )}
+  
+      {/* Divider */}
+      <hr className="sidebar-divider" />
+  
       {/* Autres éléments */}
       {userRole === 'admin' && (
         <>
           <div className="sidebar-heading">Autres éléments</div>
           <li className="nav-item">
-            <NavLink className="nav-link" to="/admin/professeurs">
+            <NavLink className="nav-link" to={`${linkRoot}/professeurs`}>
               <i className="fas fa-fw fa-tachometer-alt"></i>
               <span>Professeurs</span>
             </NavLink>
           </li>
-        </>
-      )}
-
-      {userRole === 'userSimple' && (
-        <>
-          <div className="sidebar-heading">Listes des données</div>
           <li className="nav-item text-white">
-            <NavLink className="nav-link" to="/user/filieres">
+            <NavLink className="nav-link" to={`${linkRoot}/filieres`}>
               <i className="fas fa-fw fa-tachometer-alt"></i>
               <span>Filiere</span>
             </NavLink>
           </li>
-
-          <div className="sidebar-heading">Autres éléments</div>
-          <li className="nav-item">
-            <div
-              className="nav-link collapsed"
-              data-toggle="collapse"
-              data-target="#collapseTickets"
-              aria-expanded="true"
-              aria-controls="collapseTickets"
-              style={{ cursor: 'pointer' }}
-            >
+          <li className="nav-item text-white">
+            <NavLink className="nav-link" to={`${linkRoot}/uniteEnseigns`}>
+              <i className="fas fa-fw fa-tachometer-alt"></i>
+              <span> Unité d'enseignement</span>
+            </NavLink>
+          </li>
+        </>
+      )}
+  
+      {userRole === 'userSimple' && (
+        <>
+          <div className="sidebar-heading">Listes des données</div>
+          <li className="nav-item text-white">
+            <NavLink className="nav-link" to={`${linkRoot}/cours`}>
               <i className="fas fa-fw fa-cube"></i>
-              <span>Cours</span>
-            </div>
-            <div id="collapseTickets" className="collapse" aria-labelledby="headingTickets" data-parent="#accordionSidebar">
-              <div className="bg-white py-2 collapse-inner rounded">
-                <h6 className="collapse-header">Listes des tickets </h6>
-                <NavLink className="collapse-item" to="/user/cours">
-                  Tous
-                </NavLink>
-                <NavLink className="collapse-item" to="/user/uniteEnseigns">
-                  Unité d'enseignement
-                </NavLink>
-              </div>
-            </div>
+              cours
+            </NavLink>
           </li>
         </>
       )}
     </ul>
   );
-}
-
+      }
 export default Sidebar;

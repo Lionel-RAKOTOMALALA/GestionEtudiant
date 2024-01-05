@@ -1,73 +1,70 @@
-  import React, { useEffect, useState } from "react";
-  import { UilCheckCircle, UilTimes, UilArrowCircleLeft } from "@iconscout/react-unicons";
-  import axios from "axios";
-  import swal from "sweetalert";
-  import { NavLink } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { CheckCircleOutlined, CloseCircleOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import axios from "axios";
+import swal from "sweetalert";
+import { NavLink } from "react-router-dom";
+import { Form, Input, Select, Button, Row, Col, Card, Spin } from "antd";
 
-  const EtudiantForm = () => {
-    const [usersList, setUsersList] = useState([]);
-    const [filieresList, setFilieresList] = useState([]);  // Ajout de la liste des filières
-    const [etudiantInput, setEtudiantInput] = useState({
-      niveau: "",
-      parcours: "",
-      id_filiere: "",
-      id: "",
-      error_list: {},
+const { Option } = Select;
+
+const EtudiantForm = () => {
+  const [usersList, setUsersList] = useState([]);
+  const [filieresList, setFilieresList] = useState([]);
+  const [etudiantInput, setEtudiantInput] = useState({
+    niveau: "",
+    parcours: "",
+    id_filiere: "",
+    id: "",
+    error_list: {},
+  });
+  const [form] = Form.useForm();
+  const [formError, setFormError] = useState("");
+
+  const handleInput = (e) => {
+    e.persist();
+    setEtudiantInput({
+      ...etudiantInput,
+      [e.target.name]: e.target.value,
     });
-    const [formError, setFormError] = useState("");
+    setFormError("");
+  };
 
-    const handleInput = (e) => {
-      e.persist();
-      setEtudiantInput({
-        ...etudiantInput,
-        [e.target.name]: e.target.value,
-      });
-      setFormError("");
-    };
+  const resetForm = () => {
+    form.resetFields();
+    setFormError("");
+  };
 
-    const resetForm = () => {
-      setEtudiantInput({
-        niveau: "",
-        parcours: "",
-        id_filiere: "",
-        id: "",
-        error_list: {},
-      });
-      setFormError("");
-    };
+  const submitEtudiant = async () => {
+    try {
+      const values = await form.validateFields();
 
-    const submitEtudiant = (e) => {
-      e.preventDefault();
-
-      // Réinitialisez les messages d'erreur
+      // Reset error messages
       setEtudiantInput({
         ...etudiantInput,
         error_list: {},
       });
       setFormError("");
 
-      // Validation côté client
+      // Validation on the client side
       const errors = {};
-      if (etudiantInput.niveau === "") {
+      if (values.niveau === "") {
         errors.niveau = "Le niveau est requis";
       }
-      if (etudiantInput.parcours === "") {
+      if (values.parcours === "") {
         errors.parcours = "Le parcours est requis";
       }
-      if (etudiantInput.id_filiere === "") {
+      if (values.id_filiere === "") {
         errors.id_filiere = "La filière est requise";
       }
-      if (etudiantInput.id === "") {
+      if (values.id === "") {
         errors.id = "L'utilisateur est requis";
       }
 
       if (Object.keys(errors).length > 0) {
-        // Il y a des erreurs, affichez-les avec Swal et dans le formulaire
+        // Display errors with Swal and in the form
         let errorString;
         if (Object.keys(errors).length > 1) {
-          const errorFields = Object.keys(errors)
-            .map((key) => key)
-            .join(" et ");
+          const errorFields = Object.keys(errors).join(" et ");
           errorString = `Les champs "${errorFields}" sont requis`;
         } else {
           const errorField = Object.keys(errors)[0];
@@ -83,181 +80,142 @@
         swal("Erreurs", errorString, "error");
       } else {
         const data = {
-          niveau: etudiantInput.niveau,
-          parcours: etudiantInput.parcours,
-          id_filiere: etudiantInput.id_filiere,
-          id_user: etudiantInput.id,
+          niveau: values.niveau,
+          parcours: values.parcours,
+          id_filiere: values.id_filiere,
+          id_user: values.id,
         };
 
-        axios
-          .post("http://127.0.0.1:8000/api/etudiants", data)
-          .then((res) => {
-            if (res.data.status === 200) {
-              swal("Success", res.data.message, "success");
+        axios.post("http://127.0.0.1:8000/api/etudiants", data).then((res) => {
+          if (res.data.status === 200) {
+            swal("Success", res.data.message, "success");
 
-              // Réinitialisez les champs du formulaire
-              resetForm();
-            } else if (res.data.status === 400) {
-              setEtudiantInput({
-                ...etudiantInput,
-                error_list: res.data.error_list,
-              });
-            }
-          });
+            // Reset form fields
+            resetForm();
+          } else if (res.data.status === 400) {
+            setEtudiantInput({
+              ...etudiantInput,
+              error_list: res.data.error_list,
+            });
+          }
+        });
       }
-    };
+    } catch (errorInfo) {
+      console.log("Failed:", errorInfo);
+    }
+  };
 
-    useEffect(() => {
-      // Récupérer la liste des utilisateurs depuis l'API
-      axios.get("http://127.0.0.1:8000/api/nom_etudiant").then((res) => {
-        if (res.data.status === 200) {
-          setUsersList(res.data.users);
-        }
-      });
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/nom_etudiant").then((res) => {
+      if (res.data.status === 200) {
+        setUsersList(res.data.users);
+      }
+    });
 
-      // Récupérer la liste des filières depuis l'API
-      axios.get("http://127.0.0.1:8000/api/filieres").then((res) => {
-        if (res.data.status === 200) {
-          setFilieresList(res.data.filieres);  // mise à jour de filieresList
-        }
-      });
-    }, []);
+    axios.get("http://127.0.0.1:8000/api/filieres").then((res) => {
+      if (res.data.status === 200) {
+        setFilieresList(res.data.filieres);
+      }
+    });
+  }, []);
 
-    return (
-      <div>
-        <div className="container py-5">
-          <div className="row justify-content-center">
-            <div className="col-md-8">
-              <div className="card">
-                <div className="card-header">
-                  <h4>Ajouter un étudiant</h4>
-                  <NavLink
-                    to="/admin/etudiants"
-                    className="btn btn-primary btn-sm float-end"
-                  >
-                    <UilArrowCircleLeft /> Retour à l'affichage
-                  </NavLink>
-                </div>
-                <div className="container">
-                  <div className="card-body">
-                    <form
-                      onSubmit={submitEtudiant}
-                      id="ETUDIANT_FORM"
-                      encType="multipart/form-data"
-                    >
-                      {formError && (
-                        <div className="alert alert-danger mb-3">
-                          {formError}
-                        </div>
-                      )}
+  return (
+    <div>
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-8">
+            <Card title="Ajouter un étudiant">
+              <div className="card-header">
+                <NavLink to="/admin/etudiants" className="btn btn-primary btn-sm float-end">
+                  <ArrowLeftOutlined /> Retour à l'affichage
+                </NavLink>
+              </div>
+              <div className="container">
+                <div className="card-body">
+                  <Spin spinning={false}>
+                    <Form form={form} onFinish={submitEtudiant} id="ETUDIANT_FORM" encType="multipart/form-data">
+                      {formError && <div className="alert alert-danger mb-3">{formError}</div>}
 
-                      <div className="form-group mb-3">
-                        <label htmlFor="niveau">Niveau</label>
-                        <input
-                          type="text"
-                          name="niveau"
-                          className={`form-control ${
-                            etudiantInput.error_list.niveau ? "is-invalid" : ""
-                          }`}
-                          onChange={handleInput}
-                          value={etudiantInput.niveau}
-                        />
+                      <Form.Item
+                        label="Niveau"
+                        name="niveau"
+                        rules={[{ required: true, message: "Le niveau est requis" }]}
+                      >
+                        <Input onChange={handleInput} />
                         {etudiantInput.error_list.niveau && (
-                          <div className="text-danger">
-                            {etudiantInput.error_list.niveau}
-                          </div>
+                          <div className="text-danger">{etudiantInput.error_list.niveau}</div>
                         )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="parcours">Parcours</label>
-                        <input
-                          type="text"
-                          name="parcours"
-                          className={`form-control ${
-                            etudiantInput.error_list.parcours ? "is-invalid" : ""
-                          }`}
-                          onChange={handleInput}
-                          value={etudiantInput.parcours}
-                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Parcours"
+                        name="parcours"
+                        rules={[{ required: true, message: "Le parcours est requis" }]}
+                      >
+                        <Input onChange={handleInput} />
                         {etudiantInput.error_list.parcours && (
-                          <div className="text-danger">
-                            {etudiantInput.error_list.parcours}
-                          </div>
+                          <div className="text-danger">{etudiantInput.error_list.parcours}</div>
                         )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="id_filiere">Filière</label>
-                        <select
-                          name="id_filiere"
-                          onChange={handleInput}
-                          value={etudiantInput.id_filiere}
-                          className={`form-control ${
-                            etudiantInput.error_list.id_filiere ? "is-invalid" : ""
-                          }`}
-                        >
-                          <option value="">Sélectionner la filière</option>
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Filière"
+                        name="id_filiere"
+                        rules={[{ required: true, message: "La filière est requise" }]}
+                      >
+                        <Select>
+                          <Option value="">Sélectionner la filière</Option>
                           {filieresList.map((filiere) => (
-                            <option key={filiere.id_filiere} value={filiere.id_filiere}>
+                            <Option key={filiere.id_filiere} value={filiere.id_filiere}>
                               {filiere.nom_filiere}
-                            </option>
+                            </Option>
                           ))}
-                        </select>
+                        </Select>
                         {etudiantInput.error_list.id_filiere && (
-                          <div className="text-danger">
-                            {etudiantInput.error_list.id_filiere}
-                          </div>
-                          )}
-                      </div>
-                      <div className="form-group mb-3">
-                        <label htmlFor="id">Utilisateur</label>
-                        <select
-                          name="id"
-                          onChange={handleInput}
-                          value={etudiantInput.id}
-                          className={`form-control ${
-                            etudiantInput.error_list.id ? "is-invalid" : ""
-                          }`}
-                        >
-                          <option value="">Sélectionner un utilisateur</option>
+                          <div className="text-danger">{etudiantInput.error_list.id_filiere}</div>
+                        )}
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Utilisateur"
+                        name="id"
+                        rules={[{ required: true, message: "L'utilisateur est requis" }]}
+                      >
+                        <Select>
+                          <Option value="">Sélectionner un utilisateur</Option>
                           {usersList.map((user) => (
-                            <option key={user.id} value={user.id}>
+                            <Option key={user.id} value={user.id}>
                               {user.name}
-                            </option>
+                            </Option>
                           ))}
-                        </select>
+                        </Select>
                         {etudiantInput.error_list.id && (
-                          <div className="text-danger">
-                            {etudiantInput.error_list.id}
-                          </div>
-                          )}
-                      </div>
-                      <div className="row">
-                        <div className="col">
-                          <button
-                            type="submit"
-                            className="btn btn-primary btn-block mb-2"
-                          >
-                            <UilCheckCircle size="20" /> Confirmer
-                          </button>
-                        </div>
+                          <div className="text-danger">{etudiantInput.error_list.id}</div>
+                        )}
+                      </Form.Item>
+
+                      <Row>
+                        <Col>
+                          <Button type="primary" htmlType="submit" block>
+                            <CheckCircleOutlined /> Confirmer
+                          </Button>
+                        </Col>
                         <NavLink to="/admin/etudiants" className="col">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-block mb-2"
-                          >
-                            <UilTimes size="20" /> Annuler
-                          </button>
+                          <Button type="button" block>
+                            <CloseCircleOutlined /> Annuler
+                          </Button>
                         </NavLink>
-                      </div>
-                    </form>
-                  </div>
+                      </Row>
+                    </Form>
+                  </Spin>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
-  export default EtudiantForm;
+export default EtudiantForm;

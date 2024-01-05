@@ -1,10 +1,73 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import swal from 'sweetalert';
+import { Avatar, List, Modal, Menu, Dropdown } from 'antd';
+import { BellOutlined, DownOutlined } from '@ant-design/icons';
 
 const TopBar = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [getRows, setRows] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const userRole = localStorage.getItem('role');
+  const isAdmin = userRole === 'admin';
+  const isUserSimple = userRole === 'userSimple';
+
+  // Racine des liens en fonction du rôle
+  const linkRoot = isAdmin ? '/admin' : isUserSimple ? '/user' : '';
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/user', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        setUser(response.data.user);
+        setRows(response.data.count_notif);
+        setLoading(false);
+
+        if (response.data.notification) {
+          setNotifications(response.data.notification);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des notifications :', error);
+      }
+    };
+
+    fetchNotifications();
+
+    const intervalId = setInterval(fetchNotifications, 3000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleNotificationClick = (notificationId) => {
+    const clickedNotification = notifications.find(
+      (notification) => notification.id_notif === notificationId
+    );
+
+    if (clickedNotification) {
+      // Implement your notification click logic here
+
+      // Close modal after a certain time
+      setTimeout(() => {
+        setIsModalVisible(false);
+      }, 3000);
+    }
+  };
 
   const logoutSubmit = (e) => {
     e.preventDefault();
@@ -20,125 +83,67 @@ const TopBar = () => {
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_name');
           swal('Success', res.data.message, 'success');
-          // alert(localStorage.removeItem('auth_token'))
           navigate('/login');
-          alert( localStorage.getItem('auth_token'));
-          //  window.location.reload();
-          
         } else {
-          // Gérer d'autres cas si nécessaire
+          // Handle other cases if necessary
         }
       })
-      .catch((error) => {
-        // Gérer les erreurs de la demande de déconnexion ici
+      .catch(() => {
+        // Handle logout request errors here
       });
   };
 
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">
+        <NavLink to={`${linkRoot}/profile`}>
+          <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+          Profile
+        </NavLink>
+      </Menu.Item>
+      <Menu.Item key="2">
+        <NavLink to="#">
+          <i className="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+          Paramètre
+        </NavLink>
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="3">
+        <NavLink to="/login" onClick={logoutSubmit}>
+          <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+          Se déconnecter
+        </NavLink>
+      </Menu.Item>
+    </Menu>
+  );
+
   let AuthButtons = null;
   if (localStorage.getItem('auth_token')) {
-    // Afficher le menu authentifié
     AuthButtons = (
       <ul className="navbar-nav">
-        {/* Nav Item - Alerts */}
         <li className="nav-item dropdown no-arrow mx-1">
-          <NavLink className="nav-link dropdown-toggle" to="#" id="alertsDropdown" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i className="fas fa-bell fa-fw"></i>
-            {/* Counter - Alerts */}
-            <span className="badge badge-danger badge-counter">3+</span>
-          </NavLink>
-          {/* Dropdown - Alerts */}
-          <div className="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-            aria-labelledby="alertsDropdown">
-            <h6 className="dropdown-header">
-              Notifications
-            </h6>
-            <NavLink className="dropdown-item d-flex align-items-center bg-white text-secondary" to="#">
-              <div className="mr-3">
-                <div className="icon-circle bg-primary">
-                  <i className="fas fa-file-alt text-white"></i>
-                </div>
-              </div>
-              <div>
-                <div className="small text-gray-500">December 12, 2019</div>
-                <span className="font-weight-bold">A new monthly report is ready to download!</span>
-              </div>
-            </NavLink>
-            <NavLink className="dropdown-item d-flex align-items-center bg-white text-secondary" to="#">
-              <div className="mr-3">
-                <div className="icon-circle bg-success">
-                  <i className="fas fa-donate text-white"></i>
-                </div>
-              </div>
-              <div>
-                <div className="small text-gray-500">December 7, 2019</div>
-                $290.29 has been deposited into your account!
-              </div>
-            </NavLink>
-            <NavLink className="dropdown-item d-flex align-items-center bg-white text-secondary" to="#">
-              <div className="mr-3">
-                <div className="icon-circle bg-warning">
-                  <i className="fas fa-exclamation-triangle text-white"></i>
-                </div>
-              </div>
-              <div>
-                <div className="small text-gray-500">December 2, 2019</div>
-                Spending Alert: We've noticed unusually high spending for your account.
-              </div>
-            </NavLink>
-            <NavLink className="dropdown-item text-center small text-gray-500 bg-white text-secondary" to="#">Show All Alerts</NavLink>
+          <div className="nav-link dropdown-toggle" onClick={showModal}>
+            <BellOutlined style={{ fontSize: '1.5rem' }} />
+            <span className="badge badge-danger badge-counter">{getRows === '0' ? '0' : getRows}</span>
           </div>
         </li>
 
         <li className="nav-item dropdown no-arrow">
-          <NavLink className="nav-link dropdown-toggle" to="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span className="mr-2 d-none d-lg-inline text-gray-600 small">Lionel Ar'k</span>
-            <img className="img-profile rounded-circle" src="../../img/undraw_profile.svg" />
-          </NavLink>
-          <div className="dropdown-menu dropdown-menu-right shadow animated--grow-in bg-white" aria-labelledby="userDropdown">
-            <NavLink className="dropdown-item bg-white text-secondary" to="#">
-              <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-              Profile
-            </NavLink>
-            <NavLink className="dropdown-item bg-white text-secondary" to="#">
-              <i className="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-              Paramètre
-            </NavLink>
-            <div className="dropdown-divider white-background"></div>
-            <NavLink
-              className="dropdown-item bg-white text-secondary"
-              to="/login"
-              onClick={logoutSubmit}
-            >
-              <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-              Se déconnecter
-            </NavLink>
-          </div>
+          <Dropdown overlay={menu} trigger={['click']}>
+            <div className="nav-link dropdown-toggle" onClick={(e) => e.preventDefault()}>
+              <Avatar
+                size="large"
+                src={`http://localhost:8000/uploads/users/${user.photo_profil}`}
+                alt="User Photo"
+              />
+              <DownOutlined style={{ marginLeft: '8px' }} />
+            </div>
+          </Dropdown>
         </li>
       </ul>
     );
   } else {
-    AuthButtons = (
-      // Afficher le menu non authentifié
-      <ul className="navbar-nav">
-        <li className="nav-item">
-          <NavLink className="nav-link text-secondary" to="/">
-            Accueil
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink className="nav-link text-secondary" to="/register">
-            S'inscrire
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink className="nav-link text-secondary" to="/login" tabIndex="-1" aria-disabled="true">
-            
-            Se connecter
-          </NavLink>
-        </li>
-      </ul>
-    );
+    // ... (rest of the non-authenticated menu)
   }
 
   const [style, setStyle] = useState("navbar-nav bg-gradient-primary sidebar sidebar-dark accordion");
@@ -159,6 +164,34 @@ const TopBar = () => {
       <ul className="navbar-nav ml-auto">
         {AuthButtons}
       </ul>
+
+      <Modal
+        title="Notifications"
+        visible={isModalVisible}
+        onCancel={handleCancel}
+        footer={null}
+        width={400}
+      >
+        <List
+          itemLayout="horizontal"
+          dataSource={notifications}
+          renderItem={(item) => (
+            <List.Item
+              onClick={() => handleNotificationClick(item.id_notif)}
+              style={{
+                backgroundColor: item.status_notif === 0 ? '#ccffcc' : 'white',
+                cursor: 'pointer',
+              }}
+            >
+              <List.Item.Meta
+                avatar={<Avatar src={`http://localhost:8000/uploads/users/${user.photo_profil}`} />}
+                title={<a href="#">{item.title}</a>}
+                description={item.content}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
     </nav>
   );
 };

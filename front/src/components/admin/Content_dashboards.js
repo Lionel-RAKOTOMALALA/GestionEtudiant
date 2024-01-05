@@ -13,7 +13,7 @@ const Content_dashboard = () => {
       <PostHeader/>
 
       {/*  <!-- Content Row --> */}
-      <Recap/>
+      <Recap nombre ={8}/>
 
       {/*  <!-- Content Row --> */}
       {/* <Chart/> */}
